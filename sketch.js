@@ -9,6 +9,7 @@
  *  **/
 
 
+
 let xOffset = 0.0;
 let yOffset = 0.0;
 let bx=0;
@@ -22,56 +23,21 @@ var GridSize=50;
 var Zoom=1;
 var Background=[245,25];
 
+var Cores = ['core1','core2','core3','core4'];
+var Instructions = ['RSTALL','CONST','MOV','SIZE n','SUB','JMPNZ a','MOVMSB','ADDX','ADDY','MUL','ADD','LOAD'];
+var Ra=0;
+var Rb=0;
+
+
 var consoleLog=[];
 var regLog=[];
 var infoLog=[];
 var line_array_readings=[]
 var consoleBuffer=0;
 
-class Core {
-  constructor (idx, idy) {
-    this.idx = idx;
-    this.idy = idy;
-    this.name = 'Core (' + this.idx + "," + this.idy + ")";
-    this.R ={'R1':0, 'R2':0 , 'R3':0, 'R4':0, 'R5':0, 'R6':0, 'R7':0,'AR':0, 'DR':0 , 'PC':0, 'IR':0, 'AC':0};
-    
-  }
-  RSTALL(){ //Clears all General Purpose Registers
-    let x = Object.keys(this.R)
-    for (var key = 0; key < 7; key++ ) {
-      this.R[x[key]] = 0;
-      console.log(this.name + " | " + "==> " + x[key]+ " set to 0")
-    }
-  }
-  CONST(a){ //R1 = a
-    this.R['R1']=a;
-    console.log(this.name + " | " + "==> R1 " + " set to "+a)
-  }
-  displaycore(){
-    fill(200);
-    let offy = 210*this.idy;
-    let offx = 210*this.idx;
-    rect(200 + offy, 200 + offx, 200,200);
-  
-    fill(0, 102, 153);
-    textSize(26);
-    text(this.name, 220 + offy , 220 + offx, 200,200); // Text wraps within text box
-  
-    let i = 0;
-    let j = 0;
-    for (var key in this.R ) {
-          if(i == 15*7){
-            j +=50;
-            i = 0;
-          }
-          fill(255-j*4 , j*3,j*5); rect(200 + offy + j, 200 + offx + i, 40,12);
-          fill(0); textSize(12);
-          text(key + ":" + this.R[key], 200 + offy +j, 200 + offx + i, 40,12);
-          i+=15;
-    }
-  }
+function dec2bin(dec){
+  return (dec >>> 0).toString(2);
 }
-
 
 class Memory {
   constructor(name) {
@@ -109,6 +75,106 @@ class Memory {
   }
 }
 
+let M = new Memory('Data');
+
+class Core {
+  constructor (idx, idy) {
+    this.idx = idx;
+    this.idy = idy;
+    this.z   = 0;
+    this.name = 'Core (' + this.idx + "," + this.idy + ")";
+    this.R ={'NULL':0,'AR':0, 'DR':0 ,'PC':0,'IR':0,'R1':0, 'R2':0 , 'R3':0, 'R4':0, 'R5':0, 'R6':0, 'R7':0, 'AC':0};
+    this.Rkeys = Object.keys(this.R);
+    
+  }
+  RSTALL(){   //Clears all General Purpose Registers
+    for (var key = 5; key < 12; key++ ) {
+      this.R[this.Rkeys[key]] = 0;
+      console.log(this.name + " | " + "==> " + this.Rkeys[key] + " set to 0")
+    }
+  }
+  CONST(a){   //R1 = a
+    this.R['R1']=a;
+    console.log(this.name + " | " + "==> R1 " + "set to "+a)
+  }
+  MOV(Ra,Rb){ //Ra = Rb
+    this.R[this.Rkeys[Ra]] = this.R[this.Rkeys[Rb]]
+    console.log(this.name + " | " + "==> " + this.Rkeys[Ra] + " set to "+ this.Rkeys[Rb])
+  }
+  SIZE(n){    //R3 = n, R4 = n^2
+    this.R['R3'] = n;
+    this.R['R4'] = n**2;
+    console.log(this.name + " | " + "==> R3 = "+ this.R['R3'] + "; R4 = "+ this.R['R4']);
+  }
+  SUB(){      //AC = AC - R5
+    console.log(this.name + " | " + "==> AC = "+ this.R['AC'] + " - "+ this.R['R5']);
+    this.R['AC'] = this.R['AC'] - this.R['R5'];
+    
+  }
+  JMPNZ(a){   //PC = a IF z!=0
+    if(this.z!=0){
+      this.R['PC'] = a
+    }
+    console.log(this.name + " | " + "==> PC = "+ a +" (if z!=0)");
+
+  }
+  MOVMSB(){   //AC = {000000,R1[3:2]}
+    var R1_B     = dec2bin(this.R['R1'])
+    var R1_b2    = '0b'+'0'.repeat((8-(R1_B.length))) + R1_B;
+    this.R['AC'] =  (R1_b2&0b1100)>>2
+
+
+    console.log(this.name + " | " + "==> AC = {000000, "+ dec2bin((R1_b2&0b1100)>>2) +"}");;
+
+  } 
+  ADDX(){     //AC = AC + IDX
+    this.R['AC'] = this.R['AC'] + this.idx
+    console.log(this.name + " | " + "==> AC = "+ this.R['AC'] + " + " + this.idx);
+
+  }
+  ADDY(){     //AC = AC + IDY
+    this.R['AC'] = this.R['AC'] + this.idy 
+    console.log(this.name + " | " + "==> AC = "+ this.R['AC'] + " + " + this.idy);
+  }
+  MUL(){      //AC = AC * R5
+    this.R['AC'] = this.R['AC']*this.R['R5']
+    console.log(this.name + " | " + "==> AC = "+ this.R['AC'] + " * " + this.R['R5']);
+  }
+  ADD(){      //AC = AC + R5
+    this.R['AC'] = this.R['AC'] + this.R['R5'];
+    console.log(this.name + " | " + "==> AC = "+ this.R['AC'] + " + " + this.R['R5']);
+  }
+  LOAD(){     //DR = M[AC]
+    this.R['DR'] = M[this.R['AC']];
+    console.log(this.name + " | " + "==> DR = M["+ this.R['AC'] + "]");
+  }
+  displaycore(){
+    fill(200);
+    let offy = 210*this.idy;
+    let offx = 210*this.idx;
+    rect(200 + offy, 200 + offx, 200,200);
+  
+    fill(0, 102, 153);
+    textSize(26);
+    text(this.name, 220 + offy , 220 + offx, 200,200); // Text wraps within text box
+  
+    let i = 0;
+    let j = 0;
+    for (var key in this.R ) {
+          if(i == 15*7){
+            j +=50;
+            i = 0;
+          }
+          fill(255-j*4 , j*3,j*5); rect(200 + offy + j, 200 + offx + i, 40,12);
+          fill(0); textSize(12);
+          text(key + ":" + this.R[key], 200 + offy +j, 200 + offx + i, 40,12);
+          i+=15;
+    }
+  }
+}
+
+
+
 
 function setup() {
   green=false;
@@ -138,7 +204,7 @@ function setup() {
 
 
   
-  gui = createGui('Processor Visualizer', windowWidth - 230 , windowHeight - 380 );
+  gui = createGui('Processor Visualizer', windowWidth - 230 , windowHeight - 430 );
   gui.addButton("ResetBoard", function() {
     ResetBoard();
   });
@@ -153,9 +219,17 @@ function setup() {
   gui.addGlobals('PanZoom');
 
   gui.addGlobals('Background');
+  gui.addGlobals('Cores');
+  gui.addGlobals('Instructions');
+  
+  sliderRange(0,15,1);
+  gui.addGlobals('Ra');
+  sliderRange(0,15,1);
+  gui.addGlobals('Rb');
   
   
-  gui.addButton("Start ", function() {
+  gui.addButton("Execute ", function() {
+    Execute();
   });
   gui.addButton("Reset", function() {
     ResetWindow();
@@ -195,12 +269,17 @@ function draw_ISA(){
 }
 let core1 = new Core(0,0);
 core1.RSTALL();
-core1.CONST(0b10);
+eval('core1.CONST(0b1111)');
+core1.MOV(0b1001,0b0101);
+core1.SUB();
+core1.JMPNZ(0b10);
+core1.SIZE(0b110);
+core1.MOVMSB();
 
 let core2 = new Core(0,1);
 let core3 = new Core(1,0);
 let core4 = new Core(1,1);
-let Mem = new Memory('Data');
+
 
 function draw() {
   background(Background);
@@ -213,7 +292,7 @@ function draw() {
   core2.displaycore();
   //core3.displaycore();
   core4.displaycore();
-  Mem.displayMem();
+  M.displayMem();
 
   console_area.elt.value = consoleLog.join("\n");
   area.elt.value         = regLog.join("\n");
@@ -233,7 +312,7 @@ function mousePressed(){
   yOffset = mouseY - by;
 }
 function mouseDragged() {
-  if(mouseX>windowWidth/5){
+  if(mouseX>windowWidth/5 &&false){
     bx = mouseX - xOffset;
     by = mouseY - yOffset;
   }
@@ -281,6 +360,18 @@ function ResetWindow() {
   bx=0;
   by=0;
 
+}
+
+function Execute(){
+  if(Instructions=='CONST'){
+    eval(Cores+'.'+Instructions+'('+Ra+')');
+  }else if(Instructions=='MOV'){
+    eval(Cores+'.'+Instructions+'('+Ra+','+Rb+')');
+  }else{
+
+    eval(Cores+'.'+Instructions+'()');
+  }
+  console.log("Execute Instruction");
 }
 
 
