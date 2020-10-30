@@ -57,7 +57,7 @@ class Memory {
   }
 
   displayMem(){
-    let s = this.name + ' memory';
+    let s = this.name + 'Memory';
     fill(0, 102, 153);
     let offy = windowWidth-350;
     let offx = 0;
@@ -90,7 +90,7 @@ class Memory {
   }
 }
 
-let M = new Memory('Data',-70);
+let M = new Memory('',-70);
 //let IM = new Memory('Instruction',0);
 
 class Core {
@@ -219,7 +219,7 @@ function setup() {
 
 
   
-  gui = createGui('Processor Visualizer', windowWidth - 230 , windowHeight - 430 );
+  gui = createGui('Processor Visualizer', windowWidth/2 -100 , windowHeight/2 -250);
   gui.addButton("Load Code", function() {
     LoadCode();
   });
@@ -385,7 +385,6 @@ function ResetWindow() {
   by=0;
 
 }
-
 function Execute(){
   if(Instructions=='CONST'){
     eval(Cores+'.'+Instructions+'('+Ra+')');
@@ -453,6 +452,3 @@ function LoadCode(){
   }
   console.log("Load Code");
 }
-
-
-
