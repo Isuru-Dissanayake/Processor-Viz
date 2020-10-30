@@ -26,6 +26,7 @@ var Background=[245,25];
 
 
 var Cores = ['core1','core2','core3','core4'];
+var cores_n = 5;
 var Instructions = ['RSTALL','CONST','MOV','SIZE n','SUB','JMPNZ a','MOVMSB','ADDX','ADDY','MUL','ADD','LOAD'];
 var Instruction_Info = {
 'HI' : 'WELCOME'
@@ -101,7 +102,7 @@ class Memory {
   displayMem(){
     let s = this.name + 'Memory';
     fill(0, 102, 153);
-    let offy = windowWidth-350;
+    let offy = windowWidth - 350;
     let offx = this.x;
     rect(200 + offy - 70, 200 + offx , 380,350);
   
@@ -327,6 +328,9 @@ function setup() {
   gui.addButton("Next Instruction ", function() {
     Next();
   });
+
+  sliderRange(1,16,1);
+  gui.addGlobals('cores_n');
   
   sliderRange(0, 90, 1);
   gui.addGlobals('GridSize');
@@ -394,7 +398,7 @@ function draw_ISA(){
 		}
   }
 }
-let core1 = new Core(0,0);
+
 //core1.RSTALL();
 //eval('core1.CONST(0b1111)');
 //core1.MOV(0b1001,0b0101);
@@ -402,13 +406,22 @@ let core1 = new Core(0,0);
 //core1.JMPNZ(0b10);
 //core1.SIZE(0b110);
 //core1.MOVMSB();
-
+let core1 = new Core(0,0);
 let core2 = new Core(0,1);
-let core3 = new Core(1,0);
-let core4 = new Core(1,1);
-
-
-
+let core3 = new Core(0,2);
+let core4 = new Core(0,3);
+let core5 = new Core(1,0);
+let core6 = new Core(1,1);
+let core7 = new Core(1,2);
+let core8 = new Core(1,3);
+let core9 = new Core(2,0);
+let core10 = new Core(2,1);
+let core11 = new Core(2,2);
+let core12 = new Core(2,3);
+let core13 = new Core(3,0);
+let core14 = new Core(3,1);
+let core15 = new Core(3,2);
+let core16 = new Core(3,3);
 
 function draw() {
   background(Background);
@@ -417,10 +430,10 @@ function draw() {
   scale(Zoom);
   //draw_ISA();
 
-  core1.displaycore();
-  core2.displaycore();
-  core3.displaycore();
-  core4.displaycore();
+  for(let k = 1;k<=cores_n;k++){
+    eval('core'+k+'.displaycore()');
+  }
+
   M.displayMem();
   DM.displayMem();
   //IM.displayMem();
@@ -522,33 +535,33 @@ function Next(){
   console.log("Next Instruction");
   code_pos_p = code_pos;
 
-  for(var iter = 1; iter <= 4; iter++){
+  for(var iter = 1; iter <= cores_n; iter++){
   switch(M.M[code_pos]) {
     case 'CONST':
       current_instruction = M.M[code_pos] + " " + M.M[code_pos+1];
       eval('core'+iter+'.'+M.M[code_pos]+'('+M.M[code_pos+1]+')');
       
-      if(iter==4)code_pos+=2;
+      if(iter==cores_n)code_pos+=2;
       break;
     case 'SIZE':
       current_instruction = M.M[code_pos] + " " + M.M[code_pos+1];
       eval('core'+iter+'.'+M.M[code_pos]+'('+M.M[code_pos+1]+')');
-      if(iter==4)code_pos+=2;
+      if(iter==cores_n)code_pos+=2;
       break;
     case 'MOV':
       current_instruction = M.M[code_pos] + " " + M.M[code_pos+1] + " " + M.M[code_pos+2];
       eval('core'+iter+'.'+ M.M[code_pos] +'('+ RegIdentifier[M.M[code_pos+1]]+',' + RegIdentifier[M.M[code_pos+2]]+')');
-      if(iter==4)code_pos+=3;
+      if(iter==cores_n)code_pos+=3;
       break;
     case 'JMPNZ':
       current_instruction = M.M[code_pos] + " " + M.M[code_pos+1];
       eval('core'+iter+'.'+M.M[code_pos]+'('+M.M[code_pos+1]+')');
-      if(iter==4)code_pos+=2;
+      if(iter==cores_n)code_pos+=2;
       break;
     default:
       current_instruction = M.M[code_pos]
       eval('core'+iter+'.' + M.M[code_pos]+'()');
-      if(iter==4)code_pos+=1;
+      if(iter==cores_n)code_pos+=1;
       
       // code block
   }
