@@ -24,6 +24,7 @@ var GridSize=50;
 var Zoom=1;
 var Background=[245,25];
 
+
 var Cores = ['core1','core2','core3','core4'];
 var Instructions = ['RSTALL','CONST','MOV','SIZE n','SUB','JMPNZ a','MOVMSB','ADDX','ADDY','MUL','ADD','LOAD'];
 var Instruction_Info = {
@@ -56,6 +57,8 @@ var RegIdentifier = {'AR':0b0001,
 'R6':0b1010,
 'R7':0b1011,
 'AC':0b1100}
+
+var latestupdates=[];
 
 
 var Ra=0;
@@ -150,33 +153,39 @@ class Core {
     
   }
   RSTALL(){   //Clears all General Purpose Registers
-    for (var key = 5; key < 12; key++ ) {
+    for (var key = 0; key < this.Rkeys.length; key++ ) {
       this.R[this.Rkeys[key]] = 0;
+      latestupdates.push(this.Rkeys[key]);
       console.log(this.name + " | " + "==> " + this.Rkeys[key] + " set to 0")
     }
   }
   CONST(a){   //R1 = a
     this.R['R1']=a;
+    latestupdates.push('R1');
     console.log(this.name + " | " + "==> R1 " + "set to "+a)
   }
   MOV(Ra,Rb){ //Ra = Rb
     this.R[this.Rkeys[Ra]] = this.R[this.Rkeys[Rb]]
+    latestupdates.push(this.Rkeys[Ra],this.Rkeys[Rb])
     console.log(this.name + " | " + "==> " + this.Rkeys[Ra] + " set to "+ this.Rkeys[Rb])
   }
   SIZE(n){    //R3 = n, R4 = n^2
     this.R['R3'] = n;
     this.R['R4'] = n**2;
+    latestupdates.push('R3','R4');
     console.log(this.name + " | " + "==> R3 = "+ this.R['R3'] + "; R4 = "+ this.R['R4']);
   }
   SUB(){      //AC = AC - R5
     console.log(this.name + " | " + "==> AC = "+ this.R['AC'] + " - "+ this.R['R5']);
     this.R['AC'] = this.R['AC'] - this.R['R5'];
-    
+    latestupdates.push('AC','R5');
   }
   JMPNZ(a){   //PC = a IF z!=0
     if(this.z!=0){
       this.R['PC'] = a
+      
     }
+    latestupdates.push('PC');
     console.log(this.name + " | " + "==> PC = "+ a +" (if z!=0)");
 
   }
@@ -185,49 +194,56 @@ class Core {
     var R1_b2    = '0b'+'0'.repeat((8-(R1_B.length))) + R1_B;
     this.R['AC'] =  (R1_b2&0b1100)>>2
 
-
+    latestupdates.push('R1','AC');
     console.log(this.name + " | " + "==> AC = {000000, "+ dec2bin((R1_b2&0b1100)>>2) +"}");;
 
   } 
   ADDX(){     //AC = AC + IDX
     this.R['AC'] = this.R['AC'] + this.idx
     console.log(this.name + " | " + "==> AC = "+ this.R['AC'] + " + " + this.idx);
-
+    latestupdates.push('AC');
   }
   ADDY(){     //AC = AC + IDY
     this.R['AC'] = this.R['AC'] + this.idy 
+    latestupdates.push('AC');
     console.log(this.name + " | " + "==> AC = "+ this.R['AC'] + " + " + this.idy);
   }
   MUL(){      //AC = AC * R5
     this.R['AC'] = this.R['AC']*this.R['R5']
+    latestupdates.push('AC','R5');
     console.log(this.name + " | " + "==> AC = "+ this.R['AC'] + " * " + this.R['R5']);
   }
   ADD(){      //AC = AC + R5
     this.R['AC'] = this.R['AC'] + this.R['R5'];
+    latestupdates.push('AC','R5');
     console.log(this.name + " | " + "==> AC = "+ this.R['AC'] + " + " + this.R['R5']);
   }
   LOAD(){     //DR = M[AC]
     this.R['DR'] = DM.M[this.R['AC']];
+    latestupdates.push('DR','AC');
     console.log(this.name + " | " + "==> DR = DM.M["+ this.R['AC'] + "]");
   }
   MOVLSB(){
     var R1_B     = dec2bin(this.R['R1'])
     var R1_b2    = '0b'+'0'.repeat((8-(R1_B.length))) + R1_B;
     this.R['AC'] =  (R1_b2&0b0011)
-
+    latestupdates.push('AC','R1');
 
     console.log(this.name + " | " + "==> AC = {000000, "+ dec2bin((R1_b2&0b0011)) +"}");;
   }
   INCI(){
     this.R['R2'] = this.R['R2'] + 1;
+    latestupdates.push('R2');
     console.log(this.name + " | " + "==> R2 = "+ this.R['R2'] + " + 1");
   }
   STORE(){
     DM.M[this.R['AC']] = this.R['R7'];
+    latestupdates.push('AC','R7');
     console.log(this.name + " | " + "==> DM.M[this.R['AC']] = "+ this.R['R7']);
   }
   RSTI(){
     this.R['R2'] = 0;
+    latestupdates.push('R2');
     console.log(this.name + " | " + "==> R2 +  set to 0")
   }
   displaycore(){
@@ -251,10 +267,18 @@ class Core {
             j +=50;
             i = 0;
           }
-          fill(220, 255,255); rect(175 + offy + j, 203 + offx + i, 40,12);
+          if(latestupdates.includes(key)){
+            fill(255, 255,0); 
+          }else{
+            fill(220, 255,255); 
+          }
+          
+          rect(175 + offy + j, 203 + offx + i, 40,12);
           fill(0); textSize(12);
           text(key + ":" + this.R[key], 175 + offy +j, 203 + offx + i, 40,12);
           i+=15;
+
+          
     }
   }
 }
@@ -494,7 +518,7 @@ function Execute(){
   console.log("Execute Instruction");
 }
 function Next(){
-
+  latestupdates = [];
   console.log("Next Instruction");
   code_pos_p = code_pos;
 
