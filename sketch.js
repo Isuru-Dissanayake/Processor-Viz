@@ -488,9 +488,13 @@ function draw() {
   text("FPS: " + fps.toFixed(2),  9*width/10, 9*height/10 -20*5);
   pop();
 
-  if(code_pos < code.length && autorun){
-    Next();
-    delay(100);
+  if(autorun)
+  if(code_pos < code.length){
+    
+      Next();
+      delay(100);
+  }else{
+    autorun = false;
   }
 
 }
