@@ -10,6 +10,7 @@
 
 
 
+
 let xOffset = 0.0;
 let yOffset = 0.0;
 let bx=0;
@@ -496,34 +497,38 @@ function Next(){
 
   console.log("Next Instruction");
   code_pos_p = code_pos;
+
+  for(var iter = 1; iter <= 4; iter++){
   switch(M.M[code_pos]) {
     case 'CONST':
       current_instruction = M.M[code_pos] + " " + M.M[code_pos+1];
-      eval(Cores+'.'+M.M[code_pos]+'('+M.M[code_pos+1]+')');
-      code_pos+=2;
+      eval('core'+iter+'.'+M.M[code_pos]+'('+M.M[code_pos+1]+')');
+      
+      if(iter==4)code_pos+=2;
       break;
     case 'SIZE':
       current_instruction = M.M[code_pos] + " " + M.M[code_pos+1];
-      eval(Cores+'.'+M.M[code_pos]+'('+M.M[code_pos+1]+')');
-      code_pos+=2;
+      eval('core'+iter+'.'+M.M[code_pos]+'('+M.M[code_pos+1]+')');
+      if(iter==4)code_pos+=2;
       break;
     case 'MOV':
       current_instruction = M.M[code_pos] + " " + M.M[code_pos+1] + " " + M.M[code_pos+2];
-      eval(Cores+'.'+ M.M[code_pos] +'('+ RegIdentifier[M.M[code_pos+1]]+',' + RegIdentifier[M.M[code_pos+2]]+')');
-      code_pos+=3;
+      eval('core'+iter+'.'+ M.M[code_pos] +'('+ RegIdentifier[M.M[code_pos+1]]+',' + RegIdentifier[M.M[code_pos+2]]+')');
+      if(iter==4)code_pos+=3;
       break;
     case 'JMPNZ':
       current_instruction = M.M[code_pos] + " " + M.M[code_pos+1];
-      eval(Cores+'.'+M.M[code_pos]+'('+M.M[code_pos+1]+')');
-      code_pos+=2;
+      eval('core'+iter+'.'+M.M[code_pos]+'('+M.M[code_pos+1]+')');
+      if(iter==4)code_pos+=2;
       break;
     default:
       current_instruction = M.M[code_pos]
-      eval(Cores+'.' + M.M[code_pos]+'()');
-      code_pos+=1;
+      eval('core'+iter+'.' + M.M[code_pos]+'()');
+      if(iter==4)code_pos+=1;
       
       // code block
   }
+}
 
 }
 
