@@ -289,7 +289,7 @@ class Core {
 
 function setup() {
   green=false;
-  frameRate(5);
+  frameRate(3);
   //pixelDensity(4);
   createCanvas(windowWidth - 10, windowHeight + 200);
 
