@@ -78,6 +78,11 @@ function dec2bin(dec){
   return (dec >>> 0).toString(2);
 }
 
+let img;
+function preload() {
+  img = loadImage('core.png');
+}
+
 class Memory {
   constructor(name,x) {
     this.name = name;
@@ -229,21 +234,25 @@ class Core {
     let offy = 210*this.idy;
     let offx = 210*this.idx;
     rect(200 + offy, 200 + offx, 200,200);
+    image(img, 100+ offy, 100+  offx, 200,200);
   
-    fill(0, 102, 153);
-    textSize(26);
+    fill(255);
+    textSize(23);
     text(this.name, 220 + offy , 220 + offx, 200,200); // Text wraps within text box
   
     let i = 0;
     let j = 0;
     for (var key in this.R ) {
-          if(i == 15*7){
+        if(key =='NULL'){
+          continue;
+        }
+          if(i == 15*4){
             j +=50;
             i = 0;
           }
-          fill(255-j*4 , j*3,j*5); rect(200 + offy + j, 200 + offx + i, 40,12);
+          fill(220, 255,255); rect(175 + offy + j, 203 + offx + i, 40,12);
           fill(0); textSize(12);
-          text(key + ":" + this.R[key], 200 + offy +j, 200 + offx + i, 40,12);
+          text(key + ":" + this.R[key], 175 + offy +j, 203 + offx + i, 40,12);
           i+=15;
     }
   }
@@ -372,6 +381,9 @@ let core1 = new Core(0,0);
 let core2 = new Core(0,1);
 let core3 = new Core(1,0);
 let core4 = new Core(1,1);
+
+
+
 
 function draw() {
   background(Background);
