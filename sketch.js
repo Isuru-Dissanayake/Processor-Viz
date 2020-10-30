@@ -102,19 +102,19 @@ class Memory {
   displayMem(){
     let s = this.name + 'Memory';
     fill(0, 102, 153);
-    let offy = windowWidth - 350;
+    let offy = windowWidth - 370;
     let offx = this.x;
-    rect(200 + offy - 70, 200 + offx , 380,350);
+    rect(200 + offy - 70, 200 + offx , 440,350);
   
     fill(255);
     textSize(20);
-    text(s, 210 + offy - 70 , 220 + offx, 380,350); // Text wraps within text box
+    text(s, 210 + offy - 70 , 220 + offx, 440,350); // Text wraps within text box
   
     let i = 0;
     let j = 0;
     for (var key in this.M ) {
           if(i == 15*20){
-            j +=87;
+            j +=99;
             i = 0;
           }
           if(this.name=='Instruction ')
@@ -131,9 +131,9 @@ class Memory {
           }
           
         
-          rect(70 + offy + j - 70, 75 + offx + i, 85,12);
+          rect(70 + offy + j - 70, 75 + offx + i, 99,12);
           fill(0); textSize(12);
-          text(key + ":   " + this.M[key], 70 + offy + j - 70, 75 + offx + i, 85,12);
+          text(key + ":   " + this.M[key], 70 + offy + j - 70, 75 + offx + i, 99,12);
           i+=15;
     }
   }
@@ -291,7 +291,7 @@ function setup() {
   green=false;
   frameRate(3);
   //pixelDensity(4);
-  createCanvas(windowWidth - 10, windowHeight + 200);
+  createCanvas(windowWidth - 10, windowHeight + 300);
 
   console_area=createElement('textarea', 'Console ');
   console_area.attribute("rows","40");
@@ -530,33 +530,32 @@ function Next(){
   latestupdates = [];
   console.log("Next Instruction");
   code_pos_p = code_pos;
-
+  console.log("=> "+M.M[code_pos][0]);
   for(var iter = 1; iter <= cores_n; iter++){
-  switch(M.M[code_pos]) {
+  switch(M.M[code_pos][0]) {
     case 'CONST':
-      current_instruction = M.M[code_pos] + " " + M.M[code_pos+1];
-      eval('core'+iter+'.'+M.M[code_pos]+'('+M.M[code_pos+1]+')');
-      
-      if(iter==cores_n)code_pos+=2;
+      current_instruction = M.M[code_pos][0] + " " + M.M[code_pos][1];
+      eval('core'+iter+'.'+M.M[code_pos][0]+'('+M.M[code_pos][1]+')');
+      if(iter==cores_n)code_pos+=1;
       break;
     case 'SIZE':
-      current_instruction = M.M[code_pos] + " " + M.M[code_pos+1];
-      eval('core'+iter+'.'+M.M[code_pos]+'('+M.M[code_pos+1]+')');
-      if(iter==cores_n)code_pos+=2;
+      current_instruction = M.M[code_pos][0] + " " + M.M[code_pos][1];
+      eval('core'+iter+'.'+M.M[code_pos][0]+'('+M.M[code_pos][1]+')');
+      if(iter==cores_n)code_pos+=1;
       break;
     case 'MOV':
-      current_instruction = M.M[code_pos] + " " + M.M[code_pos+1] + " " + M.M[code_pos+2];
-      eval('core'+iter+'.'+ M.M[code_pos] +'('+ RegIdentifier[M.M[code_pos+1]]+',' + RegIdentifier[M.M[code_pos+2]]+')');
-      if(iter==cores_n)code_pos+=3;
+      current_instruction = M.M[code_pos][0] + " " + M.M[code_pos][1] + " " + M.M[code_pos][2];
+      eval('core'+iter+'.'+ M.M[code_pos][0] +'('+ RegIdentifier[M.M[code_pos][1]]+',' + RegIdentifier[M.M[code_pos][2]]+')');
+      if(iter==cores_n)code_pos+=1;
       break;
     case 'JMPNZ':
-      current_instruction = M.M[code_pos] + " " + M.M[code_pos+1];
-      eval('core'+iter+'.'+M.M[code_pos]+'('+M.M[code_pos+1]+')');
+      current_instruction = M.M[code_pos][0] + " " + M.M[code_pos+1];
+      eval('core'+iter+'.'+M.M[code_pos][0]+'('+M.M[code_pos+1]+')');
       if(iter==cores_n)code_pos+=2;
       break;
     default:
-      current_instruction = M.M[code_pos]
-      eval('core'+iter+'.' + M.M[code_pos]+'()');
+      current_instruction = M.M[code_pos][0]
+      eval('core'+iter+'.' + M.M[code_pos][0]+'()');
       if(iter==cores_n)code_pos+=1;
       
       // code block
@@ -575,8 +574,11 @@ function LoadCode(){
   
   l = 0;
   for (var k = 0; k < code.length; k++ ) {
-      split = code[k].split(" ");
-  
+      temp = code[k].replace(/[.,;\t]/g,"");
+      split = temp.split(" ");
+      M.M[l] = split;
+      l++;
+      /*
       for (var m = 0;m <split.length;m++){
         if(split[m]==" "){
           continue;
@@ -587,6 +589,7 @@ function LoadCode(){
           l++;
         }
       }
+      */
   }
   console.log("Load Code");
 }
