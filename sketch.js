@@ -25,6 +25,38 @@ var Background=[245,25];
 
 var Cores = ['core1','core2','core3','core4'];
 var Instructions = ['RSTALL','CONST','MOV','SIZE n','SUB','JMPNZ a','MOVMSB','ADDX','ADDY','MUL','ADD','LOAD'];
+var Instruction_Info = {
+'HI' : 'WELCOME'
+,'RSTALL'		: 'ALL GPR = 0'		
+,'CONST'	    : 'R1 = a'		
+,'MOV'	      : 'MOV Ra Rb => Ra = Rb'		
+,'SIZE'	    	: 'R3 = n, R4 = n^2'		
+,'SUB'		    : 'AC = AC - R5'		
+,'JMPNZ'      : 'PC = a IF z != 0'		
+,'MOVMSB'	  	: 'AC = {000000, R1[3:2]}'		
+,'ADDX'		    : 'AC = AC + IDX'		
+,'ADDY'		    : 'AC = AC + IDY'		
+,'MUL'		    : 'AC = AC * R5'		
+,'ADD'		    : 'AC = AC + R5'		
+,'LOAD'		    : 'DR = M[AC]'		
+,'MOVLSB'		  : 'AC = {000000, R1[1:0]}'		
+,'INCI'		    : 'R2 = R2 + 1'		
+,'STORE'		  : 'M[AC] = R7'		
+,'RSTI'		    : 'R2 = 0'};
+var RegIdentifier = {'AR':0b0001,
+'DR':0b0010,
+'PC':0b0011,
+'IR':0b0100,
+'R1':0b0101,
+'R2':0b0110,
+'R3':0b0111,
+'R4':0b1000,
+'R5':0b1001,
+'R6':0b1010,
+'R7':0b1011,
+'AC':0b1100}
+
+
 var Ra=0;
 var Rb=0;
 
@@ -32,10 +64,11 @@ var Rb=0;
 var consoleLog=[];
 var regLog=[];
 var code="";
+var matrix;
 
 var code_pos = 0;
 var code_pos_p = 0;
-var current_instruction ="";
+var current_instruction ="HI";
 
 var infoLog=[];
 var line_array_readings=[]
@@ -50,7 +83,7 @@ class Memory {
     this.name = name;
     this.x = x;
     this.M ={};
-    for (var x = 0; x < 64; x++) {
+    for (var x = 0; x < 80; x++) {
       this.M[x] = 0;
     }
 
@@ -60,37 +93,44 @@ class Memory {
     let s = this.name + 'Memory';
     fill(0, 102, 153);
     let offy = windowWidth-350;
-    let offx = 0;
-    let x = this.x;
-    rect(200 + offy + x, 200 + offx, 380,350);
+    let offx = this.x;
+    rect(200 + offy - 70, 200 + offx , 380,350);
   
-    fill(0);
+    fill(255);
     textSize(20);
-    text(s, 220 + offy +x , 220 + offx, 380,350); // Text wraps within text box
+    text(s, 210 + offy - 70 , 220 + offx, 380,350); // Text wraps within text box
   
     let i = 0;
     let j = 0;
     for (var key in this.M ) {
-          if(i == 15*16){
+          if(i == 15*20){
             j +=87;
             i = 0;
           }
+          if(this.name=='Instruction ')
           if(code_pos_p==key){
             fill(0, 255,0);
           }else{
             fill(220, 255,255);
           }
+          if(this.name=='Data ')
+          if(eval(Cores+".R['AR']")==key){
+            fill(254, 255,0);
+          }else{
+            fill(220, 255,255);
+          }
           
         
-          rect(80 + offy + j + x, 100 + offx + i, 85,12);
+          rect(70 + offy + j - 70, 75 + offx + i, 85,12);
           fill(0); textSize(12);
-          text(key + ":   " + this.M[key], 80 + offy + j + x, 100 + offx + i, 85,12);
+          text(key + ":   " + this.M[key], 70 + offy + j - 70, 75 + offx + i, 85,12);
           i+=15;
     }
   }
 }
 
-let M = new Memory('',-70);
+let M = new Memory('Instruction ',0);
+let DM =new Memory('Data ',350);
 //let IM = new Memory('Instruction',0);
 
 class Core {
@@ -161,8 +201,28 @@ class Core {
     console.log(this.name + " | " + "==> AC = "+ this.R['AC'] + " + " + this.R['R5']);
   }
   LOAD(){     //DR = M[AC]
-    this.R['DR'] = M[this.R['AC']];
-    console.log(this.name + " | " + "==> DR = M["+ this.R['AC'] + "]");
+    this.R['DR'] = DM.M[this.R['AC']];
+    console.log(this.name + " | " + "==> DR = DM.M["+ this.R['AC'] + "]");
+  }
+  MOVLSB(){
+    var R1_B     = dec2bin(this.R['R1'])
+    var R1_b2    = '0b'+'0'.repeat((8-(R1_B.length))) + R1_B;
+    this.R['AC'] =  (R1_b2&0b0011)
+
+
+    console.log(this.name + " | " + "==> AC = {000000, "+ dec2bin((R1_b2&0b0011)) +"}");;
+  }
+  INCI(){
+    this.R['R2'] = this.R['R2'] + 1;
+    console.log(this.name + " | " + "==> R2 = "+ this.R['R2'] + " + 1");
+  }
+  STORE(){
+    DM.M[this.R['AC']] = this.R['R7'];
+    console.log(this.name + " | " + "==> DM.M[this.R['AC']] = "+ this.R['R7']);
+  }
+  RSTI(){
+    this.R['R2'] = 0;
+    console.log(this.name + " | " + "==> R2 +  set to 0")
   }
   displaycore(){
     fill(200);
@@ -196,11 +256,11 @@ function setup() {
   green=false;
   frameRate(5);
   //pixelDensity(4);
-  createCanvas(windowWidth, windowHeight);
+  createCanvas(windowWidth - 10, windowHeight + 100);
 
   console_area=createElement('textarea', 'Console ');
   console_area.attribute("rows","40");
-  console_area.attribute("cols","62");
+  console_area.attribute("cols","70");
   console_area.attribute("readonly",true);
 
   area= createElement('textarea', 'Visualization Log');
@@ -211,7 +271,11 @@ function setup() {
 
   code_area= createElement('textarea', 'Copy Paste Assembly Code');
   code_area.attribute("rows","40");
-  code_area.attribute("cols","50");
+  code_area.attribute("cols","35");
+
+  matrix_area = createElement('textarea', 'Copy Paste Matrix');
+  matrix_area.attribute("rows","40");
+  matrix_area.attribute("cols","40");
 
   //arduino_mega2 = loadImage('arduino_mega_small.png');
   rectMode(CENTER);
@@ -219,9 +283,15 @@ function setup() {
 
 
   
-  gui = createGui('Processor Visualizer', windowWidth/2 -100 , windowHeight/2 -250);
+  gui = createGui('Processor Visualizer', windowWidth/2 - 50 , windowHeight/2 -200);
   gui.addButton("Load Code", function() {
     LoadCode();
+  });
+  gui.addButton("Load Matrix", function() {
+    LoadMatrix();
+  });
+  gui.addButton("Next Instruction ", function() {
+    Next();
   });
   
   sliderRange(0, 90, 1);
@@ -234,28 +304,30 @@ function setup() {
   gui.addGlobals('PanZoom');
 
   gui.addGlobals('Background');
-  gui.addGlobals('Cores');
-  gui.addGlobals('Instructions');
+
+
+  gui2 = createGui('Custom Instructions', windowWidth/4, windowHeight );
+  gui2.addGlobals('Cores');
+  gui2.addGlobals('Instructions');
   
   sliderRange(0,15,1);
-  gui.addGlobals('Ra');
+  gui2.addGlobals('Ra');
   sliderRange(0,15,1);
-  gui.addGlobals('Rb');
+  gui2.addGlobals('Rb');
   
   
-  gui.addButton("Execute ", function() {
+  gui2.addButton("Execute ", function() {
     Execute();
   });
-  gui.addButton("Next ", function() {
-    Next();
-  });
-  gui.addButton("Reset", function() {
+
+  gui2.addButton("Reset", function() {
     ResetWindow();
   });
 
   consoleLog = loadStrings('isa.txt');
   regLog     = loadStrings('reg.txt');
   code       = loadStrings('code.txt');
+  matrix     = loadStrings('matrix.txt');
   
   console.log("ammo");
 
@@ -289,13 +361,13 @@ function draw_ISA(){
   }
 }
 let core1 = new Core(0,0);
-core1.RSTALL();
-eval('core1.CONST(0b1111)');
-core1.MOV(0b1001,0b0101);
-core1.SUB();
-core1.JMPNZ(0b10);
-core1.SIZE(0b110);
-core1.MOVMSB();
+//core1.RSTALL();
+//eval('core1.CONST(0b1111)');
+//core1.MOV(0b1001,0b0101);
+//core1.SUB();
+//core1.JMPNZ(0b10);
+//core1.SIZE(0b110);
+//core1.MOVMSB();
 
 let core2 = new Core(0,1);
 let core3 = new Core(1,0);
@@ -310,16 +382,27 @@ function draw() {
 
   core1.displaycore();
   core2.displaycore();
-  //core3.displaycore();
+  core3.displaycore();
   core4.displaycore();
   M.displayMem();
+  DM.displayMem();
   //IM.displayMem();
+
+
+
 
   fill(55);
   rect(windowWidth/2 - 50, 100 - 70, 200,30);
   fill(255, 255, 255);
   textSize(17);
   text(current_instruction, windowWidth/2 - 50 + 20 , 100 - 70 + 5, 200,30); // Text wraps within text box
+
+  fill(233, 255, 255);
+  rect(windowWidth/2 + 10 , 100 -30, 320,30);
+  fill(0);
+  textSize(17);
+  var temp = current_instruction.split(" ")[0]
+  text(Instruction_Info[temp], windowWidth/2   + 30 , 100 - 30 + 5, 260,30); // Text wraps within text box
 
   console_area.elt.value = consoleLog.join("\n");
   area.elt.value         = regLog.join("\n");
@@ -404,22 +487,27 @@ function Next(){
   switch(M.M[code_pos]) {
     case 'CONST':
       current_instruction = M.M[code_pos] + " " + M.M[code_pos+1];
+      eval(Cores+'.'+M.M[code_pos]+'('+M.M[code_pos+1]+')');
       code_pos+=2;
       break;
     case 'SIZE':
       current_instruction = M.M[code_pos] + " " + M.M[code_pos+1];
+      eval(Cores+'.'+M.M[code_pos]+'('+M.M[code_pos+1]+')');
       code_pos+=2;
       break;
     case 'MOV':
       current_instruction = M.M[code_pos] + " " + M.M[code_pos+1] + " " + M.M[code_pos+2];
+      eval(Cores+'.'+ M.M[code_pos] +'('+ RegIdentifier[M.M[code_pos+1]]+',' + RegIdentifier[M.M[code_pos+2]]+')');
       code_pos+=3;
-        break;
+      break;
     case 'JMPNZ':
       current_instruction = M.M[code_pos] + " " + M.M[code_pos+1];
+      eval(Cores+'.'+M.M[code_pos]+'('+M.M[code_pos+1]+')');
       code_pos+=2;
-        break;
+      break;
     default:
       current_instruction = M.M[code_pos]
+      eval(Cores+'.' + M.M[code_pos]+'()');
       code_pos+=1;
       
       // code block
@@ -446,6 +534,31 @@ function LoadCode(){
           var temp = split[m];
           temp = temp.replace(/[.,;\s]/g,"");
           M.M[l] = temp;
+          l++;
+        }
+      }
+  }
+  console.log("Load Code");
+}
+function LoadMatrix(){
+  if(matrix_area.elt.value=="Copy Paste Matrix"){
+     matrix_area.elt.value = matrix.join("\n");
+
+  }else{
+    matrix  = matrix_area.elt.value.split("\n");
+  }
+  
+  l = 0;
+  for (var k = 0; k < matrix.length; k++ ) {
+      split = matrix[k].split(" ");
+  
+      for (var m = 0;m < split.length; m++){
+        if(split[m]==" "){
+          continue;
+        }else{
+          var temp = split[m];
+          temp = temp.replace(/[.,;\s]/g,"");
+          DM.M[l] = temp;
           l++;
         }
       }
