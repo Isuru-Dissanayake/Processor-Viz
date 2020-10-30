@@ -490,7 +490,7 @@ function draw() {
 
   if(code_pos < code.length && autorun){
     Next();
-    delay(500);
+    delay(100);
   }
 
 }
