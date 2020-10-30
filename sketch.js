@@ -32,7 +32,9 @@ var Rb=0;
 var consoleLog=[];
 var regLog=[];
 var code="";
-var i = 0;
+var code_pos = 0;
+var code_pos_p = 0;
+var current_instruction ="";
 
 var infoLog=[];
 var line_array_readings=[]
@@ -72,8 +74,13 @@ class Memory {
             j +=87;
             i = 0;
           }
-
-          fill(220, 255,255);
+          if(code_pos_p==key){
+            fill(0, 255,0);
+          }else{
+            fill(220, 255,255);
+          }
+          
+        
           rect(80 + offy + j + x, 100 + offx + i, 85,12);
           fill(0); textSize(12);
           text(key + ":   " + this.M[key], 80 + offy + j + x, 100 + offx + i, 85,12);
@@ -312,8 +319,7 @@ function draw() {
   rect(windowWidth/2 - 50, 100 - 70, 200,30);
   fill(255, 255, 255);
   textSize(17);
-  text(M.M[i], windowWidth/2 - 50 + 20 , 100 - 70 + 5, 200,30); // Text wraps within text box
-
+  text(current_instruction, windowWidth/2 - 50 + 20 , 100 - 70 + 5, 200,30); // Text wraps within text box
 
   console_area.elt.value = consoleLog.join("\n");
   area.elt.value         = regLog.join("\n");
@@ -395,9 +401,32 @@ function Execute(){
 }
 function Next(){
 
-  i+=1;
   console.log("Next Instruction");
-  console.log(code[i].split(" "));
+  code_pos_p = code_pos;
+  switch(M.M[code_pos]) {
+    case 'CONST':
+      current_instruction = M.M[code_pos] + " " + M.M[code_pos+1];
+      code_pos+=2;
+      break;
+    case 'SIZE':
+      current_instruction = M.M[code_pos] + " " + M.M[code_pos+1];
+      code_pos+=2;
+      break;
+    case 'MOV':
+      current_instruction = M.M[code_pos] + " " + M.M[code_pos+1] + " " + M.M[code_pos+2];
+      code_pos+=3;
+        break;
+    case 'JMPNZ':
+      current_instruction = M.M[code_pos] + " " + M.M[code_pos+1];
+      code_pos+=2;
+        break;
+    default:
+      current_instruction = M.M[code_pos]
+      code_pos+=1;
+      
+      // code block
+  }
+
 }
 
 function LoadCode(){
