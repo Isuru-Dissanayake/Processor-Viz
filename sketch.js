@@ -82,6 +82,14 @@ var consoleBuffer=0;
 function dec2bin(dec){
   return (dec >>> 0).toString(2);
 }
+Object.size = function(obj) {
+  var size = 0, key;
+  for (key in obj) {
+      if (obj.hasOwnProperty(key)) size++;
+  }
+  return size;
+};
+
 
 let img;
 function preload() {
@@ -93,7 +101,7 @@ class Memory {
     this.name = name;
     this.x = x;
     this.M ={};
-    for (var x = 0; x < 80; x++) {
+    for (var x = 0; x < 128; x++) {
       this.M[x] = 0;
     }
 
@@ -104,17 +112,17 @@ class Memory {
     fill(0, 102, 153);
     let offy = windowWidth - 370;
     let offx = this.x;
-    rect(200 + offy - 70, 200 + offx , 440,350);
+    rect(200 + offy - 70, 200 + offx , 440,630);
   
     fill(255);
     textSize(20);
-    text(s, 210 + offy - 70 , 220 + offx, 440,350); // Text wraps within text box
+    text(s, 210 + offy - 70 , 220 + offx, 440,420); // Text wraps within text box
   
     let i = 0;
     let j = 0;
     for (var key in this.M ) {
-          if(i == 15*20){
-            j +=99;
+          if(i == 15*32){
+            j +=101;
             i = 0;
           }
           if(this.name=='Instruction ')
@@ -131,16 +139,16 @@ class Memory {
           }
           
         
-          rect(70 + offy + j - 70, 75 + offx + i, 99,12);
+          rect(70 + offy + j - 80, 37 + offx + i, 102,12);
           fill(0); textSize(12);
-          text(key + ":   " + this.M[key], 70 + offy + j - 70, 75 + offx + i, 99,12);
+          text(key + ":   " + this.M[key], 70 + offy + j - 80, 37 + offx + i, 102,12);
           i+=15;
     }
   }
 }
 
 let M = new Memory('Instruction ',0);
-let DM =new Memory('Data ',350);
+let DM =new Memory('Data ',520);
 //let IM = new Memory('Instruction',0);
 
 class Core {
@@ -291,7 +299,7 @@ function setup() {
   green=false;
   frameRate(3);
   //pixelDensity(4);
-  createCanvas(windowWidth - 10, windowHeight + 300);
+  createCanvas(windowWidth - 10, windowHeight + 600);
 
   console_area=createElement('textarea', 'Console ');
   console_area.attribute("rows","40");
@@ -329,6 +337,9 @@ function setup() {
   });
   gui.addButton("Next Instruction ", function() {
     Next();
+  });
+  gui.addButton("Reset", function() {
+    Reset();
   });
 
 
@@ -422,8 +433,9 @@ function draw() {
   background(Background);
   translate(bx,by); // pan on mouse drag
   draw_grid();
-  M.displayMem();
+  
   DM.displayMem();
+  M.displayMem();
   scale(Zoom);
   //draw_ISA();
 
@@ -507,11 +519,11 @@ function delay(ms) {
       // d = null;  // Prevent memory leak?
   }
 }
-function ResetWindow() {
+function Reset() {
 
-  Zoom=1;
-  bx=0;
-  by=0;
+  code_pos = 0;
+  code_pos_p = 0;
+  current_instruction ="HI";
 
 }
 function Execute(){
@@ -573,10 +585,14 @@ function LoadCode(){
   }
   
   l = 0;
-  for (var k = 0; k < code.length; k++ ) {
-      temp = code[k].replace(/[.,;\t]/g,"");
-      split = temp.split(" ");
-      M.M[l] = split;
+  for (var k = 0; k < Object.size(M.M) ; k++ ) {
+      if(k < code.length){
+        temp = code[k].replace(/[.,;\t]/g,"");
+        split = temp.split(" ");
+        M.M[l] = split;
+      }else{
+        M.M[l] = ['0'];
+      }
       l++;
       /*
       for (var m = 0;m <split.length;m++){
