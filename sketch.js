@@ -25,8 +25,8 @@ var Zoom=1;
 var Background=[245,25];
 
 
-var Cores = ['core1','core2','core3','core4'];
-var cores_n = 5;
+var Cores = ['core1','core2','core3','core4','core5','core6','core7','core8','core9','core10','core11','core12','core13','core14','core15','core16'];
+var cores_n = 4;
 var Instructions = ['RSTALL','CONST','MOV','SIZE n','SUB','JMPNZ a','MOVMSB','ADDX','ADDY','MUL','ADD','LOAD'];
 var Instruction_Info = {
 'HI' : 'WELCOME'
@@ -319,6 +319,8 @@ function setup() {
 
   
   gui = createGui('Processor Visualizer', windowWidth/2 - 50 , windowHeight/2 -200);
+  sliderRange(1,16,1);
+  gui.addGlobals('cores_n');
   gui.addButton("Load Code", function() {
     LoadCode();
   });
@@ -329,8 +331,7 @@ function setup() {
     Next();
   });
 
-  sliderRange(1,16,1);
-  gui.addGlobals('cores_n');
+
   
   sliderRange(0, 90, 1);
   gui.addGlobals('GridSize');
@@ -399,13 +400,7 @@ function draw_ISA(){
   }
 }
 
-//core1.RSTALL();
-//eval('core1.CONST(0b1111)');
-//core1.MOV(0b1001,0b0101);
-//core1.SUB();
-//core1.JMPNZ(0b10);
-//core1.SIZE(0b110);
-//core1.MOVMSB();
+
 let core1 = new Core(0,0);
 let core2 = new Core(0,1);
 let core3 = new Core(0,2);
