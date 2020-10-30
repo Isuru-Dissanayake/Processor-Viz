@@ -32,6 +32,7 @@ var Rb=0;
 var consoleLog=[];
 var regLog=[];
 var code="";
+
 var code_pos = 0;
 var code_pos_p = 0;
 var current_instruction ="";
@@ -197,21 +198,20 @@ function setup() {
   //pixelDensity(4);
   createCanvas(windowWidth, windowHeight);
 
-  console_area= createElement('textarea', 'Console ');
-  console_area.attribute("rows","30");
+  console_area=createElement('textarea', 'Console ');
+  console_area.attribute("rows","40");
   console_area.attribute("cols","62");
   console_area.attribute("readonly",true);
 
   area= createElement('textarea', 'Visualization Log');
-  area.attribute("rows","30");
+  area.attribute("rows","40");
   area.attribute("cols","42");
   area.attribute("readonly",true);
 
 
-  Info_area= createElement('textarea', 'Info Log');
-  Info_area.attribute("rows","30");
-  Info_area.attribute("cols","30");
-  Info_area.attribute("readonly",true);
+  code_area= createElement('textarea', 'Copy Paste Assembly Code');
+  code_area.attribute("rows","40");
+  code_area.attribute("cols","50");
 
   //arduino_mega2 = loadImage('arduino_mega_small.png');
   rectMode(CENTER);
@@ -256,6 +256,7 @@ function setup() {
   consoleLog = loadStrings('isa.txt');
   regLog     = loadStrings('reg.txt');
   code       = loadStrings('code.txt');
+  
   console.log("ammo");
 
 
@@ -300,7 +301,6 @@ let core2 = new Core(0,1);
 let core3 = new Core(1,0);
 let core4 = new Core(1,1);
 
-
 function draw() {
   background(Background);
   translate(bx,by); // pan on mouse drag
@@ -323,7 +323,6 @@ function draw() {
 
   console_area.elt.value = consoleLog.join("\n");
   area.elt.value         = regLog.join("\n");
-  Info_area.elt.value    = infoLog.join("");
 
   
   push();
@@ -430,7 +429,13 @@ function Next(){
 }
 
 function LoadCode(){
+  if(code_area.elt.value=="Copy Paste Assembly Code"){
+    code_area.elt.value = code.join("\n");
 
+  }else{
+    code  = code_area.elt.value.split("\n");
+  }
+  
   l = 0;
   for (var k = 0; k < code.length; k++ ) {
       split = code[k].split(" ");
