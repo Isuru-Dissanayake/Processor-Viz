@@ -251,12 +251,12 @@ class Core {
     fill(200);
     let offy = 210*this.idy;
     let offx = 210*this.idx;
-    rect(200 + offy, 200 + offx, 200,200);
-    image(img, 100+ offy, 100+  offx, 200,200);
+    rect(150 + offy, 150 + offx, 200,200);
+    image(img, 50+ offy, 50+  offx, 200,200);
   
     fill(255);
     textSize(23);
-    text(this.name, 220 + offy , 220 + offx, 200,200); // Text wraps within text box
+    text(this.name, 170 + offy , 170 + offx, 200,200); // Text wraps within text box
   
     let i = 0;
     let j = 0;
@@ -274,9 +274,9 @@ class Core {
             fill(220, 255,255); 
           }
           
-          rect(175 + offy + j, 203 + offx + i, 40,12);
+          rect(125 + offy + j, 150 + offx + i, 40,12);
           fill(0); textSize(12);
-          text(key + ":" + this.R[key], 175 + offy +j, 203 + offx + i, 40,12);
+          text(key + ":" + this.R[key], 125 + offy +j, 150 + offx + i, 40,12);
           i+=15;
 
           
@@ -291,7 +291,7 @@ function setup() {
   green=false;
   frameRate(5);
   //pixelDensity(4);
-  createCanvas(windowWidth - 10, windowHeight + 100);
+  createCanvas(windowWidth - 10, windowHeight + 200);
 
   console_area=createElement('textarea', 'Console ');
   console_area.attribute("rows","40");
@@ -318,7 +318,7 @@ function setup() {
 
 
   
-  gui = createGui('Processor Visualizer', windowWidth/2 - 50 , windowHeight/2 -200);
+  gui = createGui('Processor Visualizer', windowWidth/2 - 150 , windowHeight/2 - 100);
   sliderRange(1,16,1);
   gui.addGlobals('cores_n');
   gui.addButton("Load Code", function() {
@@ -345,7 +345,7 @@ function setup() {
   gui.addGlobals('Background');
 
 
-  gui2 = createGui('Custom Instructions', windowWidth/4, windowHeight );
+  gui2 = createGui('Custom Instructions', windowWidth/4+ 90, windowHeight +200 );
   gui2.addGlobals('Cores');
   gui2.addGlobals('Instructions');
   
@@ -403,15 +403,15 @@ function draw_ISA(){
 
 let core1 = new Core(0,0);
 let core2 = new Core(0,1);
-let core3 = new Core(0,2);
-let core4 = new Core(0,3);
-let core5 = new Core(1,0);
-let core6 = new Core(1,1);
-let core7 = new Core(1,2);
-let core8 = new Core(1,3);
-let core9 = new Core(2,0);
-let core10 = new Core(2,1);
-let core11 = new Core(2,2);
+let core5 = new Core(0,2);
+let core10 = new Core(0,3);
+let core3 = new Core(1,0);
+let core4 = new Core(1,1);
+let core6 = new Core(1,2);
+let core11 = new Core(1,3);
+let core7 = new Core(2,0);
+let core8 = new Core(2,1);
+let core9 = new Core(2,2);
 let core12 = new Core(2,3);
 let core13 = new Core(3,0);
 let core14 = new Core(3,1);
@@ -422,6 +422,8 @@ function draw() {
   background(Background);
   translate(bx,by); // pan on mouse drag
   draw_grid();
+  M.displayMem();
+  DM.displayMem();
   scale(Zoom);
   //draw_ISA();
 
@@ -429,25 +431,24 @@ function draw() {
     eval('core'+k+'.displaycore()');
   }
 
-  M.displayMem();
-  DM.displayMem();
+
   //IM.displayMem();
 
 
 
 
   fill(55);
-  rect(windowWidth/2 - 50, 100 - 70, 200,30);
+  rect(windowWidth/2 - 50, 100 - 80, 200,30);
   fill(255, 255, 255);
   textSize(17);
-  text(current_instruction, windowWidth/2 - 50 + 20 , 100 - 70 + 5, 200,30); // Text wraps within text box
+  text(current_instruction, windowWidth/2 - 50 + 20 , 100 - 80 + 5, 200,30); // Text wraps within text box
 
   fill(233, 255, 255);
-  rect(windowWidth/2 + 10 , 100 -30, 320,30);
+  rect(windowWidth/2 + 10 , 100 - 60, 320,20);
   fill(0);
-  textSize(17);
+  textSize(13);
   var temp = current_instruction.split(" ")[0]
-  text(Instruction_Info[temp], windowWidth/2   + 30 , 100 - 30 + 5, 260,30); // Text wraps within text box
+  text(Instruction_Info[temp], windowWidth/2   + 30 , 100 - 50 , 260,30); // Text wraps within text box
 
   console_area.elt.value = consoleLog.join("\n");
   area.elt.value         = regLog.join("\n");
