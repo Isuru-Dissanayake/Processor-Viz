@@ -31,6 +31,9 @@ var Rb=0;
 
 var consoleLog=[];
 var regLog=[];
+var code="";
+var i = 0;
+
 var infoLog=[];
 var line_array_readings=[]
 var consoleBuffer=0;
@@ -40,10 +43,11 @@ function dec2bin(dec){
 }
 
 class Memory {
-  constructor(name) {
+  constructor(name,x) {
     this.name = name;
+    this.x = x;
     this.M ={};
-    for (var x = 0; x < 32; x++) {
+    for (var x = 0; x < 64; x++) {
       this.M[x] = 0;
     }
 
@@ -54,28 +58,32 @@ class Memory {
     fill(0, 102, 153);
     let offy = windowWidth-350;
     let offx = 0;
-    rect(200 + offy, 200 + offx, 200,350);
+    let x = this.x;
+    rect(200 + offy + x, 200 + offx, 380,350);
   
     fill(0);
-    textSize(26);
-    text(s, 220 + offy , 220 + offx, 200,350); // Text wraps within text box
+    textSize(20);
+    text(s, 220 + offy +x , 220 + offx, 380,350); // Text wraps within text box
   
     let i = 0;
     let j = 0;
     for (var key in this.M ) {
           if(i == 15*16){
-            j +=50;
+            j +=87;
             i = 0;
           }
-          fill(205-j*4 , j*3,j*5); rect(150 + offy + j, 100 + offx + i, 40,12);
+
+          fill(220, 255,255);
+          rect(80 + offy + j + x, 100 + offx + i, 85,12);
           fill(0); textSize(12);
-          text(key + ":" + this.M[key], 150 + offy + j, 100 + offx + i, 40,12);
+          text(key + ":   " + this.M[key], 80 + offy + j + x, 100 + offx + i, 85,12);
           i+=15;
     }
   }
 }
 
-let M = new Memory('Data');
+let M = new Memory('Data',-70);
+//let IM = new Memory('Instruction',0);
 
 class Core {
   constructor (idx, idy) {
@@ -184,18 +192,18 @@ function setup() {
 
   console_area= createElement('textarea', 'Console ');
   console_area.attribute("rows","30");
-  console_area.attribute("cols","60");
+  console_area.attribute("cols","62");
   console_area.attribute("readonly",true);
 
   area= createElement('textarea', 'Visualization Log');
   area.attribute("rows","30");
-  area.attribute("cols","76");
+  area.attribute("cols","42");
   area.attribute("readonly",true);
 
 
   Info_area= createElement('textarea', 'Info Log');
   Info_area.attribute("rows","30");
-  Info_area.attribute("cols","60");
+  Info_area.attribute("cols","30");
   Info_area.attribute("readonly",true);
 
   //arduino_mega2 = loadImage('arduino_mega_small.png');
@@ -205,8 +213,8 @@ function setup() {
 
   
   gui = createGui('Processor Visualizer', windowWidth - 230 , windowHeight - 430 );
-  gui.addButton("ResetBoard", function() {
-    ResetBoard();
+  gui.addButton("Load Code", function() {
+    LoadCode();
   });
   
   sliderRange(0, 90, 1);
@@ -231,12 +239,17 @@ function setup() {
   gui.addButton("Execute ", function() {
     Execute();
   });
+  gui.addButton("Next ", function() {
+    Next();
+  });
   gui.addButton("Reset", function() {
     ResetWindow();
   });
 
   consoleLog = loadStrings('isa.txt');
-  regLog = loadStrings('reg.txt');
+  regLog     = loadStrings('reg.txt');
+  code       = loadStrings('code.txt');
+  console.log("ammo");
 
 
 }
@@ -293,6 +306,14 @@ function draw() {
   //core3.displaycore();
   core4.displaycore();
   M.displayMem();
+  //IM.displayMem();
+
+  fill(55);
+  rect(windowWidth/2 - 50, 100 - 70, 200,30);
+  fill(255, 255, 255);
+  textSize(17);
+  text(M.M[i], windowWidth/2 - 50 + 20 , 100 - 70 + 5, 200,30); // Text wraps within text box
+
 
   console_area.elt.value = consoleLog.join("\n");
   area.elt.value         = regLog.join("\n");
@@ -352,8 +373,6 @@ function delay(ms) {
       // d = null;  // Prevent memory leak?
   }
 }
-
-
 function ResetWindow() {
 
   Zoom=1;
@@ -371,7 +390,35 @@ function Execute(){
 
     eval(Cores+'.'+Instructions+'()');
   }
+  i+=1;
   console.log("Execute Instruction");
 }
+function Next(){
+
+  i+=1;
+  console.log("Next Instruction");
+  console.log(code[i].split(" "));
+}
+
+function LoadCode(){
+
+  l = 0;
+  for (var k = 0; k < code.length; k++ ) {
+      split = code[k].split(" ");
+  
+      for (var m = 0;m <split.length;m++){
+        if(split[m]==" "){
+          continue;
+        }else{
+          var temp = split[m];
+          temp = temp.replace(/[.,;\s]/g,"");
+          M.M[l] = temp;
+          l++;
+        }
+      }
+  }
+  console.log("Load Code");
+}
+
 
 
