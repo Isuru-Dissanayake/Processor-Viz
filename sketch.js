@@ -24,6 +24,7 @@ var GridSize=50;
 var Zoom=1;
 var Background=[245,25];
 
+var autorun = false;
 
 var Cores = ['core1','core2','core3','core4','core5','core6','core7','core8','core9','core10','core11','core12','core13','core14','core15','core16'];
 var cores_n = 4;
@@ -60,6 +61,7 @@ var RegIdentifier = {'AR':0b0001,
 'AC':0b1100}
 
 var latestupdates=[];
+var latestmemoryupdates=[];
 
 
 var Ra=0;
@@ -74,10 +76,12 @@ var matrix;
 var code_pos = 0;
 var code_pos_p = 0;
 var current_instruction ="HI";
+var samplecodes = ['2x2','3x3','4x4'];
 
 var infoLog=[];
 var line_array_readings=[]
 var consoleBuffer=0;
+
 
 function dec2bin(dec){
   return (dec >>> 0).toString(2);
@@ -131,8 +135,9 @@ class Memory {
           }else{
             fill(220, 255,255);
           }
+
           if(this.name=='Data ')
-          if(eval(Cores+".R['AR']")==key){
+          if(latestmemoryupdates.includes(parseInt(key))){
             fill(254, 255,0);
           }else{
             fill(220, 255,255);
@@ -230,6 +235,7 @@ class Core {
   LOAD(){     //DR = M[AC]
     this.R['DR'] = DM.M[this.R['AC']];
     latestupdates.push('DR','AC');
+    latestmemoryupdates.push(this.R['AC'])
     console.log(this.name + " | " + "==> DR = DM.M["+ this.R['AC'] + "]");
   }
   MOVLSB(){
@@ -248,6 +254,7 @@ class Core {
   STORE(){
     DM.M[this.R['AC']] = this.R['R7'];
     latestupdates.push('AC','R7');
+    latestmemoryupdates.push(this.R['AC'])
     console.log(this.name + " | " + "==> DM.M[this.R['AC']] = "+ this.R['R7']);
   }
   RSTI(){
@@ -329,18 +336,26 @@ function setup() {
   gui = createGui('Processor Visualizer', windowWidth/2 - 150 , windowHeight/2 - 100);
   sliderRange(1,16,1);
   gui.addGlobals('cores_n');
-  gui.addButton("Load Code", function() {
+  gui.addGlobals('samplecodes');
+  gui.addButton("Select Sample", function() {
+    LoadSample();
+  });
+  gui.addButton("Load Code & Matrix", function() {
     LoadCode();
-  });
-  gui.addButton("Load Matrix", function() {
     LoadMatrix();
+
   });
+
+
+
   gui.addButton("Next Instruction ", function() {
     Next();
   });
   gui.addButton("Reset", function() {
     Reset();
   });
+  gui.addGlobals('autorun');
+
 
 
   
@@ -473,6 +488,11 @@ function draw() {
   text("FPS: " + fps.toFixed(2),  9*width/10, 9*height/10 -20*5);
   pop();
 
+  if(code_pos < code.length && autorun){
+    Next();
+    delay(500);
+  }
+
 }
 function mousePressed(){
   xOffset = mouseX - bx;
@@ -540,10 +560,12 @@ function Execute(){
 }
 function Next(){
   latestupdates = [];
+  //latestmemoryupdates = [];
   console.log("Next Instruction");
   code_pos_p = code_pos;
   console.log("=> "+M.M[code_pos][0]);
   for(var iter = 1; iter <= cores_n; iter++){
+
   switch(M.M[code_pos][0]) {
     case 'CONST':
       current_instruction = M.M[code_pos][0] + " " + M.M[code_pos][1];
@@ -565,6 +587,12 @@ function Next(){
       eval('core'+iter+'.'+M.M[code_pos][0]+'('+M.M[code_pos+1]+')');
       if(iter==cores_n)code_pos+=2;
       break;
+    case 'LOAD':
+      current_instruction = M.M[code_pos][0]
+      if(iter==1)latestmemoryupdates = [];
+      eval('core'+iter+'.' + M.M[code_pos][0]+'()');
+      if(iter==cores_n)code_pos+=1;
+      break;
     default:
       current_instruction = M.M[code_pos][0]
       eval('core'+iter+'.' + M.M[code_pos][0]+'()');
@@ -577,16 +605,22 @@ function Next(){
 }
 
 function LoadCode(){
+  
   if(code_area.elt.value=="Copy Paste Assembly Code"){
     code_area.elt.value = code.join("\n");
+    console.log("karanawa");
 
   }else{
     code  = code_area.elt.value.split("\n");
+    console.log("hmm")
   }
   
   l = 0;
+
+  console.log(code.length)
   for (var k = 0; k < Object.size(M.M) ; k++ ) {
       if(k < code.length){
+        
         temp = code[k].replace(/[.,;\t]/g,"");
         split = temp.split(" ");
         M.M[l] = split;
@@ -633,4 +667,12 @@ function LoadMatrix(){
       }
   }
   console.log("Load Code");
+}
+
+function LoadSample(){
+  code_area.elt.value="Copy Paste Assembly Code";
+  matrix_area.elt.value="Copy Paste Matrix";
+
+  code       = loadStrings(samplecodes+'.txt');
+  matrix     = loadStrings(samplecodes+'_data.txt');
 }
