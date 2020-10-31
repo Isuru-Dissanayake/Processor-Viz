@@ -16,7 +16,8 @@ let yOffset = 0.0;
 let bx=0;
 let by=0;
 var PanZoom = false;
-
+var speed=25;
+var fps=3;
 
 var cols, rows;
 var offset=37.5 + 14;
@@ -195,11 +196,11 @@ class Core {
     this.R['AC'] = this.R['AC'] - this.R['R5'];
     latestupdates.push('AC','R5','Z');
 
-    if(this.R['AC']==0)this.R['Z']=0;
-    else this.R['Z']=1;
+    if(this.R['AC']==0)this.R['Z']=1;
+    else this.R['Z']=0;
   }
   JMPNZ(a){   //PC = a IF z!=0
-    if(this.R['Z']!=0){
+    if(this.R['Z']==0){
       this.R['PC'] = a
       
     }
@@ -220,32 +221,32 @@ class Core {
     this.R['AC'] = this.R['AC'] + this.idx
     console.log(this.name + " | " + "==> AC = "+ this.R['AC'] + " + " + this.idx);
     latestupdates.push('AC');
-    if(this.R['AC']==0)this.R['Z']=0;
-    else this.R['Z']=1;
+    if(this.R['AC']==0)this.R['Z']=1;
+    else this.R['Z']=0;
   }
   ADDY(){     //AC = AC + IDY
     this.R['AC'] = this.R['AC'] + this.idy 
     latestupdates.push('AC');
     console.log(this.name + " | " + "==> AC = "+ this.R['AC'] + " + " + this.idy);
 
-    if(this.R['AC']==0)this.R['Z']=0;
-    else this.R['Z']=1;
+    if(this.R['AC']==0)this.R['Z']=1;
+    else this.R['Z']=0;
   }
   MUL(){      //AC = AC * R5
     this.R['AC'] = this.R['AC']*this.R['R5']
     latestupdates.push('AC','R5');
     console.log(this.name + " | " + "==> AC = "+ this.R['AC'] + " * " + this.R['R5']);
 
-    if(this.R['AC']==0)this.R['Z']=0;
-    else this.R['Z']=1;
+    if(this.R['AC']==0)this.R['Z']=1;
+    else this.R['Z']=0;
   }
   ADD(){      //AC = AC + R5
     this.R['AC'] = this.R['AC'] + this.R['R5'];
     latestupdates.push('AC','R5');
     console.log(this.name + " | " + "==> AC = "+ this.R['AC'] + " + " + this.R['R5']);
 
-    if(this.R['AC']==0)this.R['Z']=0;
-    else this.R['Z']=1;
+    if(this.R['AC']==0)this.R['Z']=1;
+    else this.R['Z']=0;
   }
   LOAD(){     //DR = M[AC]
     this.R['DR'] = DM.M[this.R['AC']];
@@ -319,7 +320,7 @@ class Core {
 
 function setup() {
   green=false;
-  frameRate(3);
+  frameRate(5);
   //pixelDensity(4);
   createCanvas(windowWidth - 10, windowHeight + 600);
 
@@ -507,7 +508,7 @@ function draw() {
   if(code_pos < code.length){
     
       Next();
-      delay(100);
+      delay(speed);
   }else{
     autorun = false;
   }
@@ -605,7 +606,7 @@ function Next(){
       current_instruction = M.M[code_pos][0] + " " + M.M[code_pos+1][0];
       eval('core'+iter+'.'+M.M[code_pos][0]+'('+M.M[code_pos+1][0]+')');
       if(iter==cores_n){
-        if(core1.R['Z']!=0) code_pos = parseInt(M.M[code_pos+1][0])
+        if(core1.R['Z']==0) code_pos = parseInt(M.M[code_pos+1][0])
         else code_pos+=2;
       }
       break;
