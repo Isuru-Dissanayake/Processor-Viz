@@ -193,11 +193,8 @@ class Core {
     this.R['AC'] = this.R['AC'] - this.R['R5'];
     latestupdates.push('AC','R5','Z');
 
-    if(this.R['AC']==0){
-      this.R['Z']=0;
-    }else{
-      this.R['Z']=-1;
-    }
+    if(this.R['AC']==0)this.R['Z']=0;
+    else this.R['Z']=1;
   }
   JMPNZ(a){   //PC = a IF z!=0
     if(this.R['Z']!=0){
@@ -221,21 +218,32 @@ class Core {
     this.R['AC'] = this.R['AC'] + this.idx
     console.log(this.name + " | " + "==> AC = "+ this.R['AC'] + " + " + this.idx);
     latestupdates.push('AC');
+    if(this.R['AC']==0)this.R['Z']=0;
+    else this.R['Z']=1;
   }
   ADDY(){     //AC = AC + IDY
     this.R['AC'] = this.R['AC'] + this.idy 
     latestupdates.push('AC');
     console.log(this.name + " | " + "==> AC = "+ this.R['AC'] + " + " + this.idy);
+
+    if(this.R['AC']==0)this.R['Z']=0;
+    else this.R['Z']=1;
   }
   MUL(){      //AC = AC * R5
     this.R['AC'] = this.R['AC']*this.R['R5']
     latestupdates.push('AC','R5');
     console.log(this.name + " | " + "==> AC = "+ this.R['AC'] + " * " + this.R['R5']);
+
+    if(this.R['AC']==0)this.R['Z']=0;
+    else this.R['Z']=1;
   }
   ADD(){      //AC = AC + R5
     this.R['AC'] = this.R['AC'] + this.R['R5'];
     latestupdates.push('AC','R5');
     console.log(this.name + " | " + "==> AC = "+ this.R['AC'] + " + " + this.R['R5']);
+
+    if(this.R['AC']==0)this.R['Z']=0;
+    else this.R['Z']=1;
   }
   LOAD(){     //DR = M[AC]
     this.R['DR'] = DM.M[this.R['AC']];
