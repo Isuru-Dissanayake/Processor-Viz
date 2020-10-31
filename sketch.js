@@ -138,7 +138,9 @@ class Memory {
 
           if(this.name=='Data ')
           if(latestmemoryupdates.includes(parseInt(key))){
-            fill(254, 255,0);
+            let cs = [254,255,0];
+            if(latestmemoryupdates.includes(-1))cs = [253,186,22];
+            fill(cs[0], cs[1],cs[2]);
           }else{
             fill(220, 255,255);
           }
@@ -613,6 +615,12 @@ function Next(){
       eval('core'+iter+'.' + M.M[code_pos][0]+'()');
       if(iter==cores_n)code_pos+=1;
       break;
+    case "STORE":
+        current_instruction = M.M[code_pos][0]
+        if(iter==1)latestmemoryupdates = [-1];
+        eval('core'+iter+'.' + M.M[code_pos][0]+'()');
+        if(iter==cores_n)code_pos+=1;
+        break;
     default:
       current_instruction = M.M[code_pos][0]
       eval('core'+iter+'.' + M.M[code_pos][0]+'()');
