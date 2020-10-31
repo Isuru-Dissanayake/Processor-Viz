@@ -160,9 +160,8 @@ class Core {
   constructor (idx, idy) {
     this.idx = idx;
     this.idy = idy;
-    this.z   = 0;
     this.name = 'Core (' + this.idx + "," + this.idy + ")";
-    this.R ={'NULL':0,'AR':0, 'DR':0 ,'PC':0,'IR':0,'R1':0, 'R2':0 , 'R3':0, 'R4':0, 'R5':0, 'R6':0, 'R7':0, 'AC':0};
+    this.R ={'NULL':0,'AR':0, 'DR':0 ,'PC':0,'IR':0,'R1':0, 'R2':0 , 'R3':0, 'R4':0, 'R5':0, 'R6':0, 'R7':0, 'AC':0,'Z':0};
     this.Rkeys = Object.keys(this.R);
     
   }
@@ -192,10 +191,16 @@ class Core {
   SUB(){      //AC = AC - R5
     console.log(this.name + " | " + "==> AC = "+ this.R['AC'] + " - "+ this.R['R5']);
     this.R['AC'] = this.R['AC'] - this.R['R5'];
-    latestupdates.push('AC','R5');
+    latestupdates.push('AC','R5','Z');
+
+    if(this.R['AC']==0){
+      this.R['Z']=0;
+    }else{
+      this.R['Z']=-1;
+    }
   }
   JMPNZ(a){   //PC = a IF z!=0
-    if(this.z!=0){
+    if(this.R['Z']!=0){
       this.R['PC'] = a
       
     }
@@ -279,7 +284,7 @@ class Core {
         if(key =='NULL'){
           continue;
         }
-          if(i == 15*4){
+          if(i == 15*5){
             j +=50;
             i = 0;
           }
@@ -587,9 +592,12 @@ function Next(){
       if(iter==cores_n)code_pos+=1;
       break;
     case 'JMPNZ':
-      current_instruction = M.M[code_pos][0] + " " + M.M[code_pos+1];
-      eval('core'+iter+'.'+M.M[code_pos][0]+'('+M.M[code_pos+1]+')');
-      if(iter==cores_n)code_pos+=2;
+      current_instruction = M.M[code_pos][0] + " " + M.M[code_pos+1][0];
+      eval('core'+iter+'.'+M.M[code_pos][0]+'('+M.M[code_pos+1][0]+')');
+      if(iter==cores_n){
+        if(core1.R['Z']!=0) code_pos = parseInt(M.M[code_pos+1][0])
+        else code_pos+=2;
+      }
       break;
     case 'LOAD':
       current_instruction = M.M[code_pos][0]
