@@ -48,7 +48,7 @@ var Instruction_Info = {
   'JMPNZ' : 'PC = a'
 };
 
-/* var RegIdentifier = {'AR':0b0001,
+var RegIdentifier = {'AR':0b0001,
 'DR':0b0010,
 'PC':0b0011,
 'IR':0b0100,
@@ -59,7 +59,7 @@ var Instruction_Info = {
 'R5':0b1001,
 'R6':0b1010,
 'R7':0b1011,
-'AC':0b1100} */
+'AC':0b1100}
 
 var latestupdates=[];
 var latestmemoryupdates=[];
