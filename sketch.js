@@ -48,7 +48,7 @@ var Instruction_Info = {
   'JMPNZ' : 'PC = a'
 };
 
-var RegIdentifier = {
+var regIdentifier = {
   'NULL':0b00000,
   'R1':0b00001, 
   'R2':0b00010, 
@@ -67,7 +67,8 @@ var RegIdentifier = {
   'TO':0b01111,
   'PC':0b10000,
   'AC':0b10001,
-  'Z':0b10010
+  'Z':0b10010,
+  'ALL':0b10011
 }
 
 var latestupdates=[];
@@ -191,84 +192,84 @@ class Core {
       'TO':0,
       'PC':0,
       'AC':0,
-      'Z':0
+      'Z':0,
+      'ALL':0
     };
     this.Rkeys = Object.keys(this.R);
     
   }
   RST(Ra){   //Clears all/specific Registers
-    if (Ra == 'ALL') {
+    if (this.Rkeys[Ra] == 'ALL') {
       for (var key = 0; key < this.Rkeys.length; key++ ) {
         this.R[this.Rkeys[key]] = 0;
         latestupdates.push(this.Rkeys[key]);
         console.log(this.name + " | " + "==> " + this.Rkeys[key] + " set to 0")
       }
     } else {
-        this.R[Ra] == 0;
-        latestupdates.push(Ra);
-        consoleLog.log(this.name + " | " + "==>" + Ra + " set to 0")
+        this.R[this.Rkeys[Ra]] == 0;
+        latestupdates.push(this.Rkeys[Ra]);
+        consoleLog.log(this.name + " | " + "==>" + this.Rkeys[Ra] + " set to 0")
     }
   }
   MOV(Ra,Rb){ //Rb = Ra
-    this.R[Rb] = this.R[Ra]
-    latestupdates.push(Rb)
-    console.log(this.name + " | " + "==> " + Rb + " set to "+ Ra)
+    this.R[this.Rkeys[Rb]] = this.R[this.Rkeys[Ra]]
+    latestupdates.push(this.Rkeys[Rb])
+    console.log(this.name + " | " + "==> " + this.Rkeys[Rb] + " set to "+ this.Rkeys[Ra])
   }
   LOAD(alpha,Rb){
-    consoleLog.log(Rb)
-    this.R[Rb] = DM.M[alpha]
-    latestupdates.push(Rb)
-    console.log(this.name + " | " + "==>" + Rb + "=" + "DM.M[" + alpha + "]")
+    this.R[this.Rkeys[Rb]] = DM.M[alpha]
+    latestupdates.push(this.Rkeys[Rb])
+    console.log(this.name + " | " + "==>" + this.Rkeys[Rb] + "=" + "DM.M[" + alpha + "]")
   }
   STORE(alpha,Rb){
-    DM.M[alpha] = this.R[Rb];
+    DM.M[alpha] = this.R[this.Rkeys[Rb]];
     latestmemoryupdates.push(alpha);
-    console.log(this.name + " | " + "==> DM.M[" + alpha + "] = "+ Rb);
+    console.log(this.name + " | " + "==> DM.M[" + alpha + "] = "+ this.Rkeys[Rb]);
   }
   LDI(alpha,Rb){
-    this.R[Rb] = alpha;
-    latestupdates.push(Rb)
-    console.log(this.name + " | ==>" + Rb + "==" + alpha)
+    this.R[this.Rkeys[Rb]] = alpha;
+    latestupdates.push(this.Rkeys[Rb])
+    console.log(this.name + " | ==>" + this.Rkeys[Rb] + "==" + alpha)
   }
   ADD(Ra,Rb){
-    this.R['AC'] = this.R[Ra] + this.R[Rb]
+    this.R['AC'] = this.R[this.Rkeys[Ra]] + this.R[this.Rkeys[Rb]]
     latestupdates.push('AC')
-    console.log(this.name + " | " + "==> AC = "+ this.R[Ra] + " + " + this.R[Rb]);
+    console.log(this.name + " | " + "==> AC = "+ this.R[this.Rkeys[Ra]] + " + " + this.R[this.Rkeys[Rb]]);
   }
   ADDONE(Ra){
-    this.R['AC'] = this.R[Ra] + 1
+    this.R['AC'] = this.R[this.Rkeys[Ra]] + 1
     latestupdates.push('AC')
-    console.log(this.name + " | " + "==> AC = "+ this.R[Ra] + " + " + "1");
+    console.log(this.name + " | " + "==> AC = "+ this.R[this.Rkeys[Ra]] + " + " + "1");
   }
   MUL(Ra,Rb){
-    this.R['AC'] = this.R[Ra]*this.R[Rb]
+    this.R['AC'] = this.R[this.Rkeys[Ra]]*this.R[this.Rkeys[Rb]]
     latestupdates.push("AC")
-    console.log(this.name + " | " + "==> AC = "+ this.R[Ra] + " * " + this.R[Rb]);
+    console.log(this.name + " | " + "==> AC = "+ this.R[this.Rkeys[Ra]] + " * " + this.R[this.Rkeys[Rb]]);
   }
   FLOOR(Ra,Rb){
-    this.R['AC'] = MATH.floor(this.R[Ra]/this.R[Rb])
+    this.R['AC'] = MATH.floor(this.R[this.Rkeys[Ra]]/this.R[this.Rkeys[Rb]])
     latestupdates.push("AC")
-    console.log(this.name + " | " + "==> AC = "+ this.R[Ra] + " FLOOR " + this.R[Rb]);
+    console.log(this.name + " | " + "==> AC = "+ this.R[this.Rkeys[Ra]] + " FLOOR " + this.R[this.Rkeys[Rb]]);
   }
   SUB(Ra,Rb){
-    this.R['AC'] = this.R[Ra] - this.R[Rb]
+    this.R['AC'] = this.R[this.Rkeys[Ra]] - this.R[this.Rkeys[Rb]]
     latestupdates.push("AC")
     if (this.R['AC'] == 0)this.R['Z']=1;
     else this.R['Z']=0;
-    console.log(this.name + " | " + "==> AC = "+ this.R[Ra] + " - " + this.R[Rb]);
+    console.log(this.name + " | " + "==> AC = "+ this.R[this.Rkeys[Ra]] + " - " + this.R[this.Rkeys[Rb]]);
   }
   SUBONE(Ra){
-    this.R['AC'] = this.R[Ra] - 1
+    this.R['AC'] = this.R[this.Rkeys[Ra]] - 1
     latestupdates.push("AC")
-    console.log(this.name + " | " + "==> AC = "+ this.R[Ra] + " - " + "1");
+    console.log(this.name + " | " + "==> AC = "+ this.R[this.Rkeys[Ra]] + " - " + "1");
   }
   ROOF(Ra,Rb){
-    this.R['AC'] = Math.ceil(this.R[Ra]/this.R[Rb])
+    this.R['AC'] = Math.ceil(this.R[this.Rkeys[Ra]]/this.R[this.Rkeys[Rb]])
     latestupdates.push('AC')
-    console.log(this.name + " | " + "==> AC = "+ this.R[Ra] + " ROOF " + this.R[Rb]);
+    console.log(this.name + " | " + "==> AC = "+ this.R[this.Rkeys[Ra]] + " ROOF " + this.R[this.Rkeys[Rb]]);
   }
   MOD(Ra,Rb){
-    this.R['AC'] = this.R[Ra]%this.R[Rb]
+    this.R['AC'] = this.R[this.Rkeys[Ra]]%this.R[this.Rkeys[Rb]]
     latestupdates.push('AC')
   }
   JMPNZ(a){   //PC = a IF z!=0
@@ -578,17 +579,17 @@ function Next(){
   switch(M.M[code_pos][0]) {
     case 'RST':
       current_instruction = M.M[code_pos][0] + " " + M.M[code_pos][1];
-      eval('core'+iter+'.'+M.M[code_pos][0]+'('+M.M[code_pos][1]+')');
+      eval('core'+iter+'.'+M.M[code_pos][0]+'('+regIdentifier[M.M[code_pos][1]]+')');
       if(iter==cores_n)code_pos+=1;
       break;
     case 'ADDONE':
       current_instruction = M.M[code_pos][0] + " " + M.M[code_pos][1];
-      eval('core'+iter+'.'+M.M[code_pos][0]+'('+M.M[code_pos][1]+')');
+      eval('core'+iter+'.'+M.M[code_pos][0]+'('+regIdentifier[M.M[code_pos][1]]+')');
       if(iter==cores_n)code_pos+=1;
       break;
     case 'SUBONE':
       current_instruction = M.M[code_pos][0] + " " + M.M[code_pos][1];
-      eval('core'+iter+'.'+M.M[code_pos][0]+'('+M.M[code_pos][1]+')');
+      eval('core'+iter+'.'+M.M[code_pos][0]+'('+regIdentifier[M.M[code_pos][1]]+')');
       if(iter==cores_n)code_pos+=1;
       break;
     case 'JMPNZ':
@@ -599,10 +600,24 @@ function Next(){
         else code_pos+=1;
       }
       break;
+    case 'LOAD':
+      current_instruction = M.M[code_pos][0] + " " + M.M[code_pos][1] + " " + M.M[code_pos][2];
+      eval('core'+iter+'.'+M.M[code_pos][0]+'('+M.M[code_pos][1]+','+regIdentifier[M.M[code_pos][2]]+')');
+      if(iter==cores_n)code_pos+=1;
+      break;
+    case 'STORE':
+      current_instruction = M.M[code_pos][0] + " " + M.M[code_pos][1] + " " + M.M[code_pos][2];
+      eval('core'+iter+'.'+M.M[code_pos][0]+'('+M.M[code_pos][1]+','+regIdentifier[M.M[code_pos][2]]+')');
+      if(iter==cores_n)code_pos+=1;
+      break;
+    case 'LDI':
+      current_instruction = M.M[code_pos][0] + " " + M.M[code_pos][1] + " " + M.M[code_pos][2];
+      eval('core'+iter+'.'+M.M[code_pos][0]+'('+M.M[code_pos][1]+','+regIdentifier[M.M[code_pos][2]]+')');
+      if(iter==cores_n)code_pos+=1;
+      break;
     default:
       current_instruction = M.M[code_pos][0] + " " + M.M[code_pos][1] + " " + M.M[code_pos][2];
-      //console.log(current_instruction)
-      eval('core'+iter+'.'+M.M[code_pos][0]+'('+M.M[code_pos][1]+','+M.M[code_pos][2]+')');
+      eval('core'+iter+'.'+M.M[code_pos][0]+'('+regIdentifier[M.M[code_pos][1]]+','+regIdentifier[M.M[code_pos][2]]+')');
       if(iter==cores_n)code_pos+=1;
       break;
   }
