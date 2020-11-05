@@ -8,10 +8,6 @@
  * 
  * 
  *  **/
-
-
-
-
 let xOffset = 0.0;
 let yOffset = 0.0;
 let bx=0;
@@ -23,7 +19,7 @@ var fps=3;
 var cols, rows;
 var offset=37.5 + 14;
 var GridSize=50;
-var Zoom=1;
+var Zoom=0.9;
 var Background=[24,245];
 
 var autorun = false;
@@ -130,7 +126,7 @@ class Memory {
   
     fill(255);
     textSize(20);
-    text(s, 210 + offy - 70 , 220 + offx, 440,420); // Text wraps within text box
+    text(s, 210 + offy - 70 , 220 + offx, 440,420); 
   
     let i = 0;
     let j = 0;
@@ -141,7 +137,7 @@ class Memory {
           }
           if(this.name=='Instruction ')
           if(code_pos_p==key){
-            fill(0, 255,0);
+            fill(254,255,0);
           }else{
             fill(220, 220,220);
           }
@@ -154,8 +150,6 @@ class Memory {
           }else{
             fill(220, 220,220);
           }
-          
-        
           rect(70 + offy + j - 80, 37 + offx + i, 102,12);
           fill(0); textSize(12);
           text(key + ":   " + this.M[key], 70 + offy + j - 80, 37 + offx + i, 102,12);
@@ -166,7 +160,6 @@ class Memory {
 
 let M = new Memory('Instruction ',0);
 let DM =new Memory('Data ',520);
-//let IM = new Memory('Instruction',0);
 
 class Core {
   constructor (idx, idy) {
@@ -198,7 +191,7 @@ class Core {
     this.Rkeys = Object.keys(this.R);
     
   }
-  RST(Ra){   //Clears all/specific Registers
+  RST(Ra){   
     if (this.Rkeys[Ra] == 'ALL') {
       for (var key = 0; key < this.Rkeys.length; key++ ) {
         this.R[this.Rkeys[key]] = 0;
@@ -211,7 +204,7 @@ class Core {
         consoleLog.log(this.name + " | " + "==>" + this.Rkeys[Ra] + " set to 0")
     }
   }
-  MOV(Ra,Rb){ //Rb = Ra
+  MOV(Ra,Rb){ 
     this.R[this.Rkeys[Rb]] = this.R[this.Rkeys[Ra]]
     latestupdates.push(this.Rkeys[Rb])
     console.log(this.name + " | " + "==> " + this.Rkeys[Rb] + " set to "+ this.Rkeys[Ra])
@@ -222,12 +215,12 @@ class Core {
     console.log(this.name + " | " + "==>" + this.Rkeys[Rb] + "=" + "DM.M[" + alpha + "]")
   }
   STORE(alpha,Rb){
-    DM.M[alpha] = this.R[this.Rkeys[Rb]];
+    DM.M[alpha] = parseInt(this.R[this.Rkeys[Rb]]);
     latestmemoryupdates.push(alpha);
     console.log(this.name + " | " + "==> DM.M[" + alpha + "] = "+ this.Rkeys[Rb]);
   }
   LDI(alpha,Rb){
-    this.R[this.Rkeys[Rb]] = alpha;
+    this.R[this.Rkeys[Rb]] = parseInt(alpha);
     latestupdates.push(this.Rkeys[Rb])
     console.log(this.name + " | ==>" + this.Rkeys[Rb] + "==" + alpha)
   }
@@ -272,7 +265,7 @@ class Core {
     this.R['AC'] = this.R[this.Rkeys[Ra]]%this.R[this.Rkeys[Rb]]
     latestupdates.push('AC')
   }
-  JMPNZ(a){   //PC = a IF z!=0
+  JMPNZ(a){   
     if(this.R['Z']==1){
       this.R['PC'] = a
       latestupdates.push('PC');
@@ -293,7 +286,7 @@ class Core {
     let i = 0;
     let j = 0;
     for (var key in this.R ) {
-        if(key =='NULL'){
+        if(key =='NULL' || key == 'ALL'){
           continue;
         }
           if(i == 15*6){
@@ -319,7 +312,6 @@ class Core {
 function setup() {
   green=false;
   frameRate(5);
-  //pixelDensity(4);
   createCanvas(windowWidth - 10, windowHeight + 600);
 
   console_area=createElement('textarea', 'Console ');
@@ -375,27 +367,6 @@ function setup() {
   gui.addGlobals('Zoom');
   sliderRange(0, 1023,1);
   gui.addGlobals('PanZoom');
-
-  gui.addGlobals('Background');
-
-
-  gui2 = createGui('Custom Instructions', windowWidth/4+ 90, windowHeight +200 );
-  gui2.addGlobals('Cores');
-  gui2.addGlobals('Instructions');
-  
-  //sliderRange(0,15,1);
-  gui2.addGlobals('Ra');
-  //sliderRange(0,15,1);
-  gui2.addGlobals('Rb');
-  
-  
-  gui2.addButton("Execute ", function() {
-    Execute();
-  });
-
-  gui2.addButton("Reset", function() {
-    ResetWindow();
-  });
 
   consoleLog = loadStrings('isa.txt');
   regLog     = loadStrings('reg.txt');
@@ -460,7 +431,6 @@ function draw() {
   DM.displayMem();
   M.displayMem();
   scale(Zoom);
-  //draw_ISA();
 
   for(let k = 1;k<=cores_n;k++){
     eval('core'+k+'.displaycore()');
@@ -472,7 +442,7 @@ function draw() {
   textSize(17);
   text(current_instruction, windowWidth/2 - 50 + 20 , 100 - 80 + 5, 200,30); // Text wraps within text box
 
-  fill(233, 255, 255);
+  fill(220, 220,220);
   rect(windowWidth/2 + 10 , 100 - 60, 320,20);
   fill(0);
   textSize(13);
@@ -571,6 +541,7 @@ function Execute(){
 
 function Next(){
   latestupdates = [];
+  latestmemoryupdates = [];
   console.log("Next Instruction");
   code_pos_p = code_pos;
   console.log("=> "+M.M[code_pos][0]);
@@ -649,18 +620,6 @@ function LoadCode(){
         M.M[l] = ['0'];
       }
       l++;
-      /*
-      for (var m = 0;m <split.length;m++){
-        if(split[m]==" "){
-          continue;
-        }else{
-          var temp = split[m];
-          temp = temp.replace(/[.,;\s]/g,"");
-          M.M[l] = temp;
-          l++;
-        }
-      }
-      */
   }
   console.log("Load Code");
 }
@@ -682,7 +641,7 @@ function LoadMatrix(){
         }else{
           var temp = split[m];
           temp = temp.replace(/[.,;\s]/g,"");
-          DM.M[l] = temp;
+          DM.M[l] = parseInt(temp);
           l++;
         }
       }
