@@ -1,9 +1,10 @@
-/**  Author : Ramith Hettiarachchi
+/**  Author : Isuru Dissanayake
  * 
  * 
- *  Visualizer for Processor H^2KR
+ *  Processor Visualizer for Project FPGA
+ *  
  * 
- *  im@ramith.fyi
+ *  To Run : browser-sync start --server -f -w
  * 
  * 
  *  **/
@@ -23,32 +24,31 @@ var cols, rows;
 var offset=37.5 + 14;
 var GridSize=50;
 var Zoom=1;
-var Background=[245,25];
+var Background=[24,245];
 
 var autorun = false;
 
 var Cores = ['core1','core2','core3','core4','core5','core6','core7','core8','core9','core10','core11','core12','core13','core14','core15','core16'];
 var cores_n = 4;
-var Instructions = ['RSTALL','CONST','MOV','SIZE n','SUB','JMPNZ a','MOVMSB','ADDX','ADDY','MUL','ADD','LOAD'];
+var Instructions = ['RST','MOV','LOAD','STORE','LDI','ADD','ADDONE','MUL','FLOOR','SUB','SUBONE','ROOF','MOD','JMPNZ'];
 var Instruction_Info = {
-'HI' : 'WELCOME'
-,'RSTALL'		: 'ALL GPR = 0'		
-,'CONST'	    : 'R1 = a'		
-,'MOV'	      : 'MOV Ra Rb => Ra = Rb'		
-,'SIZE'	    	: 'R3 = n, R4 = n^2'		
-,'SUB'		    : 'AC = AC - R5'		
-,'JMPNZ'      : 'PC = a IF z != 0'		
-,'MOVMSB'	  	: 'AC = {000000, R1[3:2]}'		
-,'ADDX'		    : 'AC = AC + IDX'		
-,'ADDY'		    : 'AC = AC + IDY'		
-,'MUL'		    : 'AC = AC * R5'		
-,'ADD'		    : 'AC = AC + R5'		
-,'LOAD'		    : 'DR = M[AC]'		
-,'MOVLSB'		  : 'AC = {000000, R1[1:0]}'		
-,'INCI'		    : 'R2 = R2 + 1'		
-,'STORE'		  : 'M[AC] = R7'		
-,'RSTI'		    : 'R2 = 0'};
-var RegIdentifier = {'AR':0b0001,
+  'HI' : 'WELLCOME',
+  'RST' : 'RESET TO 0',
+  'LOAD' : 'Rb = DM.M[alpha]',
+  'STORE' : 'DM.M[alpha] = Rb',
+  'LDI' : 'Rb = alpha',
+  'ADD' : 'AC = Ra + Rb',
+  'ADDONE' : 'AC = Ra + 1',
+  'MUL' : 'AC = Ra * Rb',
+  'FLOOR' : 'AC = FLOOR(Ra/Rb)',
+  'SUB' : 'AC = Ra - Rb',
+  'SUBONE' : 'AC = Ra - 1',
+  'ROOF' : 'AC = ROOF(Ra/Rb)',
+  'MOD' : 'AC = Ra%Rb',
+  'JMPNZ' : 'PC = a'
+};
+
+/* var RegIdentifier = {'AR':0b0001,
 'DR':0b0010,
 'PC':0b0011,
 'IR':0b0100,
@@ -59,7 +59,7 @@ var RegIdentifier = {'AR':0b0001,
 'R5':0b1001,
 'R6':0b1010,
 'R7':0b1011,
-'AC':0b1100}
+'AC':0b1100} */
 
 var latestupdates=[];
 var latestmemoryupdates=[];
@@ -97,7 +97,7 @@ Object.size = function(obj) {
 
 let img;
 function preload() {
-  img = loadImage('core.png');
+  img = loadImage('core.jpg');
 }
 
 class Memory {
@@ -113,7 +113,7 @@ class Memory {
 
   displayMem(){
     let s = this.name + 'Memory';
-    fill(0, 102, 153);
+    fill(50);
     let offy = windowWidth - 370;
     let offx = this.x;
     rect(200 + offy - 70, 200 + offx , 440,630);
@@ -133,7 +133,7 @@ class Memory {
           if(code_pos_p==key){
             fill(0, 255,0);
           }else{
-            fill(220, 255,255);
+            fill(220, 220,220);
           }
 
           if(this.name=='Data ')
@@ -142,7 +142,7 @@ class Memory {
             if(latestmemoryupdates.includes(-1))cs = [253,186,22];
             fill(cs[0], cs[1],cs[2]);
           }else{
-            fill(220, 255,255);
+            fill(220, 220,220);
           }
           
         
@@ -163,7 +163,27 @@ class Core {
     this.idx = idx;
     this.idy = idy;
     this.name = 'Core (' + this.idx + "," + this.idy + ")";
-    this.R ={'NULL':0,'AR':0, 'DR':0 ,'PC':0,'IR':0,'R1':0, 'R2':0 , 'R3':0, 'R4':0, 'R5':0, 'R6':0, 'R7':0, 'AC':0,'Z':0};
+    this.R ={
+      'NULL':0,
+      'R1':0, 
+      'R2':0, 
+      'R3':0, 
+      'R4':0, 
+      'R5':0, 
+      'R6':0, 
+      'R7':0, 
+      'R8':0, 
+      'R9':0, 
+      'R10':0, 
+      'R11':0, 
+      'R12':0, 
+      'R13':0, 
+      'R14':0, 
+      'TO':0,
+      'PC':0,
+      'AC':0,
+      'Z':0
+    };
     this.Rkeys = Object.keys(this.R);
     
   }
@@ -186,6 +206,7 @@ class Core {
     console.log(this.name + " | " + "==> " + Rb + " set to "+ Ra)
   }
   LOAD(alpha,Rb){
+    consoleLog.log(Rb)
     this.R[Rb] = DM.M[alpha]
     latestupdates.push(Rb)
     console.log(this.name + " | " + "==>" + Rb + "=" + "DM.M[" + alpha + "]")
@@ -207,7 +228,7 @@ class Core {
   }
   ADDONE(Ra){
     this.R['AC'] = this.R[Ra] + 1
-    latestupdates.push(Ra)
+    latestupdates.push('AC')
     console.log(this.name + " | " + "==> AC = "+ this.R[Ra] + " + " + "1");
   }
   MUL(Ra,Rb){
@@ -265,19 +286,19 @@ class Core {
         if(key =='NULL'){
           continue;
         }
-          if(i == 15*5){
+          if(i == 15*6){
             j +=50;
             i = 0;
           }
           if(latestupdates.includes(key)){
             fill(255, 255,0); 
           }else{
-            fill(220, 255,255); 
+            fill(220, 220,220); 
           }
           
-          rect(125 + offy + j, 150 + offx + i, 40,12);
+          rect(100 + offy + j, 150 + offx + i, 40,12);
           fill(0); textSize(12);
-          text(key + ":" + this.R[key], 125 + offy +j, 150 + offx + i, 40,12);
+          text(key + ":" + this.R[key], 100 + offy +j, 150 + offx + i, 40,12);
           i+=15;
 
           
@@ -310,7 +331,6 @@ function setup() {
   matrix_area.attribute("rows","40");
   matrix_area.attribute("cols","40");
 
-  //arduino_mega2 = loadImage('arduino_mega_small.png');
   rectMode(CENTER);
   angleMode(DEGREES);
 
@@ -353,9 +373,9 @@ function setup() {
   gui2.addGlobals('Cores');
   gui2.addGlobals('Instructions');
   
-  sliderRange(0,15,1);
+  //sliderRange(0,15,1);
   gui2.addGlobals('Ra');
-  sliderRange(0,15,1);
+  //sliderRange(0,15,1);
   gui2.addGlobals('Rb');
   
   
@@ -523,13 +543,16 @@ function Reset() {
 
 }
 function Execute(){
-  if(Instructions=='CONST'){
+  if(Instructions=='RST'){
     eval(Cores+'.'+Instructions+'('+Ra+')');
-  }else if(Instructions=='MOV'){
-    eval(Cores+'.'+Instructions+'('+Ra+','+Rb+')');
+  }else if(Instructions=='ADDONE'){
+    eval(Cores+'.'+Instructions+'('+Ra+')');
+  }else if(Instructions=='SUBONE'){
+    eval(Cores+'.'+Instructions+'('+Ra+')');
+  }else if(Instructions=='JMPNZ'){
+    eval(Cores+'.'+Instructions+'('+Ra+')');
   }else{
-
-    eval(Cores+'.'+Instructions+'()');
+    eval(Cores+'.'+Instructions+'('+Ra+','+Rb+')');
   }
   i+=1;
   console.log("Execute Instruction");
@@ -546,21 +569,21 @@ function Next(){
   switch(M.M[code_pos][0]) {
     case 'RST':
       current_instruction = M.M[code_pos][0] + " " + M.M[code_pos][1];
-      evall('core'+iter+'.'+M.M[code_pos][0]+'('+M.M[code_pos][1]+')');
+      eval('core'+iter+'.'+M.M[code_pos][0]+'('+M.M[code_pos][1]+')');
       if(iter==cores_n)code_pos+=1;
       break;
     case 'ADDONE':
       current_instruction = M.M[code_pos][0] + " " + M.M[code_pos][1];
-      evall('core'+iter+'.'+M.M[code_pos][0]+'('+M.M[code_pos][1]+')');
+      eval('core'+iter+'.'+M.M[code_pos][0]+'('+M.M[code_pos][1]+')');
       if(iter==cores_n)code_pos+=1;
       break;
     case 'SUBONE':
       current_instruction = M.M[code_pos][0] + " " + M.M[code_pos][1];
-      evall('core'+iter+'.'+M.M[code_pos][0]+'('+M.M[code_pos][1]+')');
+      eval('core'+iter+'.'+M.M[code_pos][0]+'('+M.M[code_pos][1]+')');
       if(iter==cores_n)code_pos+=1;
       break;
     case 'JMPNZ':
-      current_instruction = M.M[code_pos][0] + " " + M.M[code_pos+1][0];
+      current_instruction = M.M[code_pos][0] + " " + M.M[code_pos][1];
       eval('core'+iter+'.'+M.M[code_pos][0]+'('+M.M[code_pos][1]+')');
       if(iter==cores_n){
         if(core1.R['Z']==1) code_pos = parseInt(M.M[code_pos][1])
@@ -569,6 +592,7 @@ function Next(){
       break;
     default:
       current_instruction = M.M[code_pos][0] + " " + M.M[code_pos][1] + " " + M.M[code_pos][2];
+      //console.log(current_instruction)
       eval('core'+iter+'.'+M.M[code_pos][0]+'('+M.M[code_pos][1]+','+M.M[code_pos][2]+')');
       if(iter==cores_n)code_pos+=1;
       break;
