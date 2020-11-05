@@ -1,16 +1,13 @@
-/**  Author : Ramith Hettiarachchi
+/**  Author : Isuru Dissanayake
  * 
  * 
- *  Visualizer for Processor H^2KR
+ *  Processor Visualizer for Project FPGA
+ *  
  * 
- *  im@ramith.fyi
+ *  To Run : browser-sync start --server -f -w
  * 
  * 
  *  **/
-
-
-
-
 let xOffset = 0.0;
 let yOffset = 0.0;
 let bx=0;
@@ -22,44 +19,53 @@ var fps=3;
 var cols, rows;
 var offset=37.5 + 14;
 var GridSize=50;
-var Zoom=1;
-var Background=[245,25];
+var Zoom=0.9;
+var Background=[24,245];
 
 var autorun = false;
 
 var Cores = ['core1','core2','core3','core4','core5','core6','core7','core8','core9','core10','core11','core12','core13','core14','core15','core16'];
 var cores_n = 4;
-var Instructions = ['RSTALL','CONST','MOV','SIZE n','SUB','JMPNZ a','MOVMSB','ADDX','ADDY','MUL','ADD','LOAD'];
+var Instructions = ['RST','MOV','LOAD','STORE','LDI','ADD','ADDONE','MUL','FLOOR','SUB','SUBONE','ROOF','MOD','JMPNZ'];
 var Instruction_Info = {
-'HI' : 'WELCOME'
-,'RSTALL'		: 'ALL GPR = 0'		
-,'CONST'	    : 'R1 = a'		
-,'MOV'	      : 'MOV Ra Rb => Ra = Rb'		
-,'SIZE'	    	: 'R3 = n, R4 = n^2'		
-,'SUB'		    : 'AC = AC - R5'		
-,'JMPNZ'      : 'PC = a IF z != 0'		
-,'MOVMSB'	  	: 'AC = {000000, R1[3:2]}'		
-,'ADDX'		    : 'AC = AC + IDX'		
-,'ADDY'		    : 'AC = AC + IDY'		
-,'MUL'		    : 'AC = AC * R5'		
-,'ADD'		    : 'AC = AC + R5'		
-,'LOAD'		    : 'DR = M[AC]'		
-,'MOVLSB'		  : 'AC = {000000, R1[1:0]}'		
-,'INCI'		    : 'R2 = R2 + 1'		
-,'STORE'		  : 'M[AC] = R7'		
-,'RSTI'		    : 'R2 = 0'};
-var RegIdentifier = {'AR':0b0001,
-'DR':0b0010,
-'PC':0b0011,
-'IR':0b0100,
-'R1':0b0101,
-'R2':0b0110,
-'R3':0b0111,
-'R4':0b1000,
-'R5':0b1001,
-'R6':0b1010,
-'R7':0b1011,
-'AC':0b1100}
+  'HI' : 'WELLCOME',
+  'RST' : 'RESET TO 0',
+  'LOAD' : 'Rb = DM.M[alpha]',
+  'STORE' : 'DM.M[alpha] = Rb',
+  'LDI' : 'Rb = alpha',
+  'ADD' : 'AC = Ra + Rb',
+  'ADDONE' : 'AC = Ra + 1',
+  'MUL' : 'AC = Ra * Rb',
+  'FLOOR' : 'AC = FLOOR(Ra/Rb)',
+  'SUB' : 'AC = Ra - Rb',
+  'SUBONE' : 'AC = Ra - 1',
+  'ROOF' : 'AC = ROOF(Ra/Rb)',
+  'MOD' : 'AC = Ra%Rb',
+  'JMPNZ' : 'PC = a'
+};
+
+var regIdentifier = {
+  'NULL':0b00000,
+  'R1':0b00001, 
+  'R2':0b00010, 
+  'R3':0b00011, 
+  'R4':0b00100, 
+  'R5':0b00101, 
+  'R6':0b00110, 
+  'R7':0b00111, 
+  'R8':0b01000, 
+  'R9':0b01001, 
+  'R10':0b01010, 
+  'R11':0b01011, 
+  'R12':0b01100, 
+  'R13':0b01101, 
+  'R14':0b01110, 
+  'TO':0b01111,
+  'PC':0b10000,
+  'AC':0b10001,
+  'Z':0b10010,
+  'ALL':0b10011
+}
 
 var latestupdates=[];
 var latestmemoryupdates=[];
@@ -95,10 +101,9 @@ Object.size = function(obj) {
   return size;
 };
 
-
 let img;
 function preload() {
-  img = loadImage('core.png');
+  img = loadImage('core.jpg');
 }
 
 class Memory {
@@ -114,14 +119,14 @@ class Memory {
 
   displayMem(){
     let s = this.name + 'Memory';
-    fill(0, 102, 153);
+    fill(50);
     let offy = windowWidth - 370;
     let offx = this.x;
     rect(200 + offy - 70, 200 + offx , 440,630);
   
     fill(255);
     textSize(20);
-    text(s, 210 + offy - 70 , 220 + offx, 440,420); // Text wraps within text box
+    text(s, 210 + offy - 70 , 220 + offx, 440,420); 
   
     let i = 0;
     let j = 0;
@@ -132,9 +137,9 @@ class Memory {
           }
           if(this.name=='Instruction ')
           if(code_pos_p==key){
-            fill(0, 255,0);
+            fill(254,255,0);
           }else{
-            fill(220, 255,255);
+            fill(220, 220,220);
           }
 
           if(this.name=='Data ')
@@ -143,10 +148,8 @@ class Memory {
             if(latestmemoryupdates.includes(-1))cs = [253,186,22];
             fill(cs[0], cs[1],cs[2]);
           }else{
-            fill(220, 255,255);
+            fill(220, 220,220);
           }
-          
-        
           rect(70 + offy + j - 80, 37 + offx + i, 102,12);
           fill(0); textSize(12);
           text(key + ":   " + this.M[key], 70 + offy + j - 80, 37 + offx + i, 102,12);
@@ -157,126 +160,117 @@ class Memory {
 
 let M = new Memory('Instruction ',0);
 let DM =new Memory('Data ',520);
-//let IM = new Memory('Instruction',0);
 
 class Core {
   constructor (idx, idy) {
     this.idx = idx;
     this.idy = idy;
     this.name = 'Core (' + this.idx + "," + this.idy + ")";
-    this.R ={'NULL':0,'AR':0, 'DR':0 ,'PC':0,'IR':0,'R1':0, 'R2':0 , 'R3':0, 'R4':0, 'R5':0, 'R6':0, 'R7':0, 'AC':0,'Z':0};
+    this.R ={
+      'NULL':0,
+      'R1':0, 
+      'R2':0, 
+      'R3':0, 
+      'R4':0, 
+      'R5':0, 
+      'R6':0, 
+      'R7':0, 
+      'R8':0, 
+      'R9':0, 
+      'R10':0, 
+      'R11':0, 
+      'R12':0, 
+      'R13':0, 
+      'R14':0, 
+      'TO':0,
+      'PC':0,
+      'AC':0,
+      'Z':0,
+      'ALL':0
+    };
     this.Rkeys = Object.keys(this.R);
     
   }
-  RSTALL(){   //Clears all General Purpose Registers
-    for (var key = 0; key < this.Rkeys.length; key++ ) {
-      this.R[this.Rkeys[key]] = 0;
-      latestupdates.push(this.Rkeys[key]);
-      console.log(this.name + " | " + "==> " + this.Rkeys[key] + " set to 0")
+  RST(Ra){   
+    if (this.Rkeys[Ra] == 'ALL') {
+      for (var key = 0; key < this.Rkeys.length; key++ ) {
+        this.R[this.Rkeys[key]] = 0;
+        latestupdates.push(this.Rkeys[key]);
+        console.log(this.name + " | " + "==> " + this.Rkeys[key] + " set to 0")
+      }
+    } else {
+        this.R[this.Rkeys[Ra]] == 0;
+        latestupdates.push(this.Rkeys[Ra]);
+        consoleLog.log(this.name + " | " + "==>" + this.Rkeys[Ra] + " set to 0")
     }
   }
-  CONST(a){   //R1 = a
-    this.R['R1']=a;
-    latestupdates.push('R1');
-    console.log(this.name + " | " + "==> R1 " + "set to "+a)
+  MOV(Ra,Rb){ 
+    this.R[this.Rkeys[Rb]] = this.R[this.Rkeys[Ra]]
+    latestupdates.push(this.Rkeys[Rb])
+    console.log(this.name + " | " + "==> " + this.Rkeys[Rb] + " set to "+ this.Rkeys[Ra])
   }
-  MOV(Ra,Rb){ //Ra = Rb
-    this.R[this.Rkeys[Ra]] = this.R[this.Rkeys[Rb]]
-    latestupdates.push(this.Rkeys[Ra],this.Rkeys[Rb])
-    console.log(this.name + " | " + "==> " + this.Rkeys[Ra] + " set to "+ this.Rkeys[Rb])
+  LOAD(alpha,Rb){
+    this.R[this.Rkeys[Rb]] = DM.M[alpha]
+    latestupdates.push(this.Rkeys[Rb])
+    console.log(this.name + " | " + "==>" + this.Rkeys[Rb] + "=" + "DM.M[" + alpha + "]")
   }
-  SIZE(n){    //R3 = n, R4 = n^2
-    this.R['R3'] = n;
-    this.R['R4'] = n**2;
-    latestupdates.push('R3','R4');
-    console.log(this.name + " | " + "==> R3 = "+ this.R['R3'] + "; R4 = "+ this.R['R4']);
+  STORE(alpha,Rb){
+    DM.M[alpha] = parseInt(this.R[this.Rkeys[Rb]]);
+    latestmemoryupdates.push(alpha);
+    console.log(this.name + " | " + "==> DM.M[" + alpha + "] = "+ this.Rkeys[Rb]);
   }
-  SUB(){      //AC = AC - R5
-    console.log(this.name + " | " + "==> AC = "+ this.R['AC'] + " - "+ this.R['R5']);
-    this.R['AC'] = this.R['AC'] - this.R['R5'];
-    latestupdates.push('AC','R5','Z');
-
-    if(this.R['AC']==0)this.R['Z']=1;
+  LDI(alpha,Rb){
+    this.R[this.Rkeys[Rb]] = parseInt(alpha);
+    latestupdates.push(this.Rkeys[Rb])
+    console.log(this.name + " | ==>" + this.Rkeys[Rb] + "==" + alpha)
+  }
+  ADD(Ra,Rb){
+    this.R['AC'] = this.R[this.Rkeys[Ra]] + this.R[this.Rkeys[Rb]]
+    latestupdates.push('AC')
+    console.log(this.name + " | " + "==> AC = "+ this.R[this.Rkeys[Ra]] + " + " + this.R[this.Rkeys[Rb]]);
+  }
+  ADDONE(Ra){
+    this.R['AC'] = this.R[this.Rkeys[Ra]] + 1
+    latestupdates.push('AC')
+    console.log(this.name + " | " + "==> AC = "+ this.R[this.Rkeys[Ra]] + " + " + "1");
+  }
+  MUL(Ra,Rb){
+    this.R['AC'] = this.R[this.Rkeys[Ra]]*this.R[this.Rkeys[Rb]]
+    latestupdates.push("AC")
+    console.log(this.name + " | " + "==> AC = "+ this.R[this.Rkeys[Ra]] + " * " + this.R[this.Rkeys[Rb]]);
+  }
+  FLOOR(Ra,Rb){
+    this.R['AC'] = MATH.floor(this.R[this.Rkeys[Ra]]/this.R[this.Rkeys[Rb]])
+    latestupdates.push("AC")
+    console.log(this.name + " | " + "==> AC = "+ this.R[this.Rkeys[Ra]] + " FLOOR " + this.R[this.Rkeys[Rb]]);
+  }
+  SUB(Ra,Rb){
+    this.R['AC'] = this.R[this.Rkeys[Ra]] - this.R[this.Rkeys[Rb]]
+    latestupdates.push("AC")
+    if (this.R['AC'] == 0)this.R['Z']=1;
     else this.R['Z']=0;
+    console.log(this.name + " | " + "==> AC = "+ this.R[this.Rkeys[Ra]] + " - " + this.R[this.Rkeys[Rb]]);
   }
-  JMPNZ(a){   //PC = a IF z!=0
-    if(this.R['Z']==0){
+  SUBONE(Ra){
+    this.R['AC'] = this.R[this.Rkeys[Ra]] - 1
+    latestupdates.push("AC")
+    console.log(this.name + " | " + "==> AC = "+ this.R[this.Rkeys[Ra]] + " - " + "1");
+  }
+  ROOF(Ra,Rb){
+    this.R['AC'] = Math.ceil(this.R[this.Rkeys[Ra]]/this.R[this.Rkeys[Rb]])
+    latestupdates.push('AC')
+    console.log(this.name + " | " + "==> AC = "+ this.R[this.Rkeys[Ra]] + " ROOF " + this.R[this.Rkeys[Rb]]);
+  }
+  MOD(Ra,Rb){
+    this.R['AC'] = this.R[this.Rkeys[Ra]]%this.R[this.Rkeys[Rb]]
+    latestupdates.push('AC')
+  }
+  JMPNZ(a){   
+    if(this.R['Z']==1){
       this.R['PC'] = a
-      
+      latestupdates.push('PC');
+      console.log(this.name + " | " + "==> PC = "+ a +" (if z==1)");
     }
-    latestupdates.push('PC');
-    console.log(this.name + " | " + "==> PC = "+ a +" (if z!=0)");
-
-  }
-  MOVMSB(){   //AC = {000000,R1[3:2]}
-    var R1_B     = dec2bin(this.R['R1'])
-    var R1_b2    = '0b'+'0'.repeat((8-(R1_B.length))) + R1_B;
-    this.R['AC'] =  (R1_b2&0b1100)>>2
-
-    latestupdates.push('R1','AC');
-    console.log(this.name + " | " + "==> AC = {000000, "+ dec2bin((R1_b2&0b1100)>>2) +"}");;
-
-  } 
-  ADDX(){     //AC = AC + IDX
-    this.R['AC'] = this.R['AC'] + this.idx
-    console.log(this.name + " | " + "==> AC = "+ this.R['AC'] + " + " + this.idx);
-    latestupdates.push('AC');
-    if(this.R['AC']==0)this.R['Z']=1;
-    else this.R['Z']=0;
-  }
-  ADDY(){     //AC = AC + IDY
-    this.R['AC'] = this.R['AC'] + this.idy 
-    latestupdates.push('AC');
-    console.log(this.name + " | " + "==> AC = "+ this.R['AC'] + " + " + this.idy);
-
-    if(this.R['AC']==0)this.R['Z']=1;
-    else this.R['Z']=0;
-  }
-  MUL(){      //AC = AC * R5
-    this.R['AC'] = this.R['AC']*this.R['R5']
-    latestupdates.push('AC','R5');
-    console.log(this.name + " | " + "==> AC = "+ this.R['AC'] + " * " + this.R['R5']);
-
-    if(this.R['AC']==0)this.R['Z']=1;
-    else this.R['Z']=0;
-  }
-  ADD(){      //AC = AC + R5
-    this.R['AC'] = this.R['AC'] + this.R['R5'];
-    latestupdates.push('AC','R5');
-    console.log(this.name + " | " + "==> AC = "+ this.R['AC'] + " + " + this.R['R5']);
-
-    if(this.R['AC']==0)this.R['Z']=1;
-    else this.R['Z']=0;
-  }
-  LOAD(){     //DR = M[AC]
-    this.R['DR'] = DM.M[this.R['AC']];
-    latestupdates.push('DR','AC');
-    latestmemoryupdates.push(this.R['AC'])
-    console.log(this.name + " | " + "==> DR = DM.M["+ this.R['AC'] + "]");
-  }
-  MOVLSB(){
-    var R1_B     = dec2bin(this.R['R1'])
-    var R1_b2    = '0b'+'0'.repeat((8-(R1_B.length))) + R1_B;
-    this.R['AC'] =  (R1_b2&0b0011)
-    latestupdates.push('AC','R1');
-
-    console.log(this.name + " | " + "==> AC = {000000, "+ dec2bin((R1_b2&0b0011)) +"}");;
-  }
-  INCI(){
-    this.R['R2'] = this.R['R2'] + 1;
-    latestupdates.push('R2');
-    console.log(this.name + " | " + "==> R2 = "+ this.R['R2'] + " + 1");
-  }
-  STORE(){
-    DM.M[this.R['AC']] = this.R['R7'];
-    latestupdates.push('AC','R7');
-    latestmemoryupdates.push(this.R['AC'])
-    console.log(this.name + " | " + "==> DM.M[this.R['AC']] = "+ this.R['R7']);
-  }
-  RSTI(){
-    this.R['R2'] = 0;
-    latestupdates.push('R2');
-    console.log(this.name + " | " + "==> R2 +  set to 0")
   }
   displaycore(){
     fill(200);
@@ -292,22 +286,22 @@ class Core {
     let i = 0;
     let j = 0;
     for (var key in this.R ) {
-        if(key =='NULL'){
+        if(key =='NULL' || key == 'ALL'){
           continue;
         }
-          if(i == 15*5){
+          if(i == 15*6){
             j +=50;
             i = 0;
           }
           if(latestupdates.includes(key)){
             fill(255, 255,0); 
           }else{
-            fill(220, 255,255); 
+            fill(220, 220,220); 
           }
           
-          rect(125 + offy + j, 150 + offx + i, 40,12);
+          rect(100 + offy + j, 150 + offx + i, 40,12);
           fill(0); textSize(12);
-          text(key + ":" + this.R[key], 125 + offy +j, 150 + offx + i, 40,12);
+          text(key + ":" + this.R[key], 100 + offy +j, 150 + offx + i, 40,12);
           i+=15;
 
           
@@ -315,13 +309,9 @@ class Core {
   }
 }
 
-
-
-
 function setup() {
   green=false;
   frameRate(5);
-  //pixelDensity(4);
   createCanvas(windowWidth - 10, windowHeight + 600);
 
   console_area=createElement('textarea', 'Console ');
@@ -343,7 +333,6 @@ function setup() {
   matrix_area.attribute("rows","40");
   matrix_area.attribute("cols","40");
 
-  //arduino_mega2 = loadImage('arduino_mega_small.png');
   rectMode(CENTER);
   angleMode(DEGREES);
 
@@ -361,9 +350,6 @@ function setup() {
     LoadMatrix();
 
   });
-
-
-
   gui.addButton("Next Instruction ", function() {
     Next();
   });
@@ -373,8 +359,6 @@ function setup() {
   gui.addGlobals('autorun');
 
 
-
-  
   sliderRange(0, 90, 1);
   gui.addGlobals('GridSize');
   sliderRange(0, 360, 5);
@@ -383,27 +367,6 @@ function setup() {
   gui.addGlobals('Zoom');
   sliderRange(0, 1023,1);
   gui.addGlobals('PanZoom');
-
-  gui.addGlobals('Background');
-
-
-  gui2 = createGui('Custom Instructions', windowWidth/4+ 90, windowHeight +200 );
-  gui2.addGlobals('Cores');
-  gui2.addGlobals('Instructions');
-  
-  sliderRange(0,15,1);
-  gui2.addGlobals('Ra');
-  sliderRange(0,15,1);
-  gui2.addGlobals('Rb');
-  
-  
-  gui2.addButton("Execute ", function() {
-    Execute();
-  });
-
-  gui2.addButton("Reset", function() {
-    ResetWindow();
-  });
 
   consoleLog = loadStrings('isa.txt');
   regLog     = loadStrings('reg.txt');
@@ -468,17 +431,10 @@ function draw() {
   DM.displayMem();
   M.displayMem();
   scale(Zoom);
-  //draw_ISA();
 
   for(let k = 1;k<=cores_n;k++){
     eval('core'+k+'.displaycore()');
   }
-
-
-  //IM.displayMem();
-
-
-
 
   fill(55);
   rect(windowWidth/2 - 50, 100 - 80, 200,30);
@@ -486,7 +442,7 @@ function draw() {
   textSize(17);
   text(current_instruction, windowWidth/2 - 50 + 20 , 100 - 80 + 5, 200,30); // Text wraps within text box
 
-  fill(233, 255, 255);
+  fill(220, 220,220);
   rect(windowWidth/2 + 10 , 100 - 60, 320,20);
   fill(0);
   textSize(13);
@@ -567,67 +523,74 @@ function Reset() {
 
 }
 function Execute(){
-  if(Instructions=='CONST'){
+  if(Instructions=='RST'){
     eval(Cores+'.'+Instructions+'('+Ra+')');
-  }else if(Instructions=='MOV'){
-    eval(Cores+'.'+Instructions+'('+Ra+','+Rb+')');
+  }else if(Instructions=='ADDONE'){
+    eval(Cores+'.'+Instructions+'('+Ra+')');
+  }else if(Instructions=='SUBONE'){
+    eval(Cores+'.'+Instructions+'('+Ra+')');
+  }else if(Instructions=='JMPNZ'){
+    eval(Cores+'.'+Instructions+'('+Ra+')');
   }else{
-
-    eval(Cores+'.'+Instructions+'()');
+    eval(Cores+'.'+Instructions+'('+Ra+','+Rb+')');
   }
   i+=1;
   console.log("Execute Instruction");
 }
+
+
 function Next(){
   latestupdates = [];
-  //latestmemoryupdates = [];
+  latestmemoryupdates = [];
   console.log("Next Instruction");
   code_pos_p = code_pos;
   console.log("=> "+M.M[code_pos][0]);
   for(var iter = 1; iter <= cores_n; iter++){
 
   switch(M.M[code_pos][0]) {
-    case 'CONST':
+    case 'RST':
       current_instruction = M.M[code_pos][0] + " " + M.M[code_pos][1];
-      eval('core'+iter+'.'+M.M[code_pos][0]+'('+M.M[code_pos][1]+')');
+      eval('core'+iter+'.'+M.M[code_pos][0]+'('+regIdentifier[M.M[code_pos][1]]+')');
       if(iter==cores_n)code_pos+=1;
       break;
-    case 'SIZE':
+    case 'ADDONE':
       current_instruction = M.M[code_pos][0] + " " + M.M[code_pos][1];
-      eval('core'+iter+'.'+M.M[code_pos][0]+'('+M.M[code_pos][1]+')');
+      eval('core'+iter+'.'+M.M[code_pos][0]+'('+regIdentifier[M.M[code_pos][1]]+')');
       if(iter==cores_n)code_pos+=1;
       break;
-    case 'MOV':
-      current_instruction = M.M[code_pos][0] + " " + M.M[code_pos][1] + " " + M.M[code_pos][2];
-      eval('core'+iter+'.'+ M.M[code_pos][0] +'('+ RegIdentifier[M.M[code_pos][1]]+',' + RegIdentifier[M.M[code_pos][2]]+')');
+    case 'SUBONE':
+      current_instruction = M.M[code_pos][0] + " " + M.M[code_pos][1];
+      eval('core'+iter+'.'+M.M[code_pos][0]+'('+regIdentifier[M.M[code_pos][1]]+')');
       if(iter==cores_n)code_pos+=1;
       break;
     case 'JMPNZ':
-      current_instruction = M.M[code_pos][0] + " " + M.M[code_pos+1][0];
-      eval('core'+iter+'.'+M.M[code_pos][0]+'('+M.M[code_pos+1][0]+')');
+      current_instruction = M.M[code_pos][0] + " " + M.M[code_pos][1];
+      eval('core'+iter+'.'+M.M[code_pos][0]+'('+M.M[code_pos][1]+')');
       if(iter==cores_n){
-        if(core1.R['Z']==0) code_pos = parseInt(M.M[code_pos+1][0])
-        else code_pos+=2;
+        if(core1.R['Z']==1) code_pos = parseInt(M.M[code_pos][1])
+        else code_pos+=1;
       }
       break;
     case 'LOAD':
-      current_instruction = M.M[code_pos][0]
-      if(iter==1)latestmemoryupdates = [];
-      eval('core'+iter+'.' + M.M[code_pos][0]+'()');
+      current_instruction = M.M[code_pos][0] + " " + M.M[code_pos][1] + " " + M.M[code_pos][2];
+      eval('core'+iter+'.'+M.M[code_pos][0]+'('+M.M[code_pos][1]+','+regIdentifier[M.M[code_pos][2]]+')');
       if(iter==cores_n)code_pos+=1;
       break;
-    case "STORE":
-        current_instruction = M.M[code_pos][0]
-        if(iter==1)latestmemoryupdates = [-1];
-        eval('core'+iter+'.' + M.M[code_pos][0]+'()');
-        if(iter==cores_n)code_pos+=1;
-        break;
-    default:
-      current_instruction = M.M[code_pos][0]
-      eval('core'+iter+'.' + M.M[code_pos][0]+'()');
+    case 'STORE':
+      current_instruction = M.M[code_pos][0] + " " + M.M[code_pos][1] + " " + M.M[code_pos][2];
+      eval('core'+iter+'.'+M.M[code_pos][0]+'('+M.M[code_pos][1]+','+regIdentifier[M.M[code_pos][2]]+')');
       if(iter==cores_n)code_pos+=1;
-      
-      // code block
+      break;
+    case 'LDI':
+      current_instruction = M.M[code_pos][0] + " " + M.M[code_pos][1] + " " + M.M[code_pos][2];
+      eval('core'+iter+'.'+M.M[code_pos][0]+'('+M.M[code_pos][1]+','+regIdentifier[M.M[code_pos][2]]+')');
+      if(iter==cores_n)code_pos+=1;
+      break;
+    default:
+      current_instruction = M.M[code_pos][0] + " " + M.M[code_pos][1] + " " + M.M[code_pos][2];
+      eval('core'+iter+'.'+M.M[code_pos][0]+'('+regIdentifier[M.M[code_pos][1]]+','+regIdentifier[M.M[code_pos][2]]+')');
+      if(iter==cores_n)code_pos+=1;
+      break;
   }
 }
 
@@ -657,18 +620,6 @@ function LoadCode(){
         M.M[l] = ['0'];
       }
       l++;
-      /*
-      for (var m = 0;m <split.length;m++){
-        if(split[m]==" "){
-          continue;
-        }else{
-          var temp = split[m];
-          temp = temp.replace(/[.,;\s]/g,"");
-          M.M[l] = temp;
-          l++;
-        }
-      }
-      */
   }
   console.log("Load Code");
 }
@@ -690,7 +641,7 @@ function LoadMatrix(){
         }else{
           var temp = split[m];
           temp = temp.replace(/[.,;\s]/g,"");
-          DM.M[l] = temp;
+          DM.M[l] = parseInt(temp);
           l++;
         }
       }
