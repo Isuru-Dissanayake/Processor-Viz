@@ -26,17 +26,18 @@ var autorun = false;
 
 var Cores = ['core1','core2','core3','core4','core5','core6','core7','core8','core9','core10','core11','core12','core13','core14','core15','core16'];
 var cores_n = 4;
-var Instructions = ['RST','MOV','LOAD','STORE','LDI','ADD','ADDONE','MUL','FLOOR','SUB','SUBONE','ROOF','MOD','JMPNZ'];
+var Instructions = ['RST','MOV','LOAD','STORE','LDI','ADD','ADDONE','MUL','FLR','SUB','SUBONE','ROOF','MOD','JMPNZ'];
 var Instruction_Info = {
   'HI' : 'WELLCOME',
   'RST' : 'RESET TO 0',
+  'MOV' : 'SET Rb = Ra',
   'LOAD' : 'Rb = DM.M[alpha]',
   'STORE' : 'DM.M[alpha] = Rb',
   'LDI' : 'Rb = alpha',
   'ADD' : 'AC = Ra + Rb',
   'ADDONE' : 'AC = Ra + 1',
   'MUL' : 'AC = Ra * Rb',
-  'FLOOR' : 'AC = FLOOR(Ra/Rb)',
+  'FLR' : 'AC = FLOOR(Ra/Rb)',
   'SUB' : 'AC = Ra - Rb',
   'SUBONE' : 'AC = Ra - 1',
   'ROOF' : 'AC = ROOF(Ra/Rb)',
@@ -64,7 +65,8 @@ var regIdentifier = {
   'PC':0b10000,
   'AC':0b10001,
   'Z':0b10010,
-  'ALL':0b10011
+  'I' : 0b10011,
+  'ALL':0b10100
 }
 
 var latestupdates=[];
@@ -122,17 +124,17 @@ class Memory {
     fill(50);
     let offy = windowWidth - 370;
     let offx = this.x;
-    rect(200 + offy - 70, 200 + offx , 440,630);
+    rect(200 + offy - 70, 200 + offx , 460,630);
   
     fill(255);
     textSize(20);
-    text(s, 210 + offy - 70 , 220 + offx, 440,420); 
+    text(s, 210 + offy - 70 , 220 + offx, 460,420); 
   
     let i = 0;
     let j = 0;
     for (var key in this.M ) {
           if(i == 15*32){
-            j +=101;
+            j +=109;
             i = 0;
           }
           if(this.name=='Instruction ')
@@ -150,9 +152,9 @@ class Memory {
           }else{
             fill(220, 220,220);
           }
-          rect(70 + offy + j - 80, 37 + offx + i, 102,12);
+          rect(70 + offy + j - 80, 37 + offx + i, 110,12);
           fill(0); textSize(12);
-          text(key + ":   " + this.M[key], 70 + offy + j - 80, 37 + offx + i, 102,12);
+          text(key + ":   " + this.M[key], 70 + offy + j - 80, 37 + offx + i, 110,12);
           i+=15;
     }
   }
@@ -161,8 +163,9 @@ class Memory {
 let M = new Memory('Instruction ',0);
 let DM =new Memory('Data ',520);
 
+
 class Core {
-  constructor (idx, idy) {
+  constructor (idx, idy, q) {
     this.idx = idx;
     this.idy = idy;
     this.name = 'Core (' + this.idx + "," + this.idy + ")";
@@ -186,6 +189,7 @@ class Core {
       'PC':0,
       'AC':0,
       'Z':0,
+      'I' : q,
       'ALL':0
     };
     this.Rkeys = Object.keys(this.R);
@@ -194,9 +198,13 @@ class Core {
   RST(Ra){   
     if (this.Rkeys[Ra] == 'ALL') {
       for (var key = 0; key < this.Rkeys.length; key++ ) {
-        this.R[this.Rkeys[key]] = 0;
-        latestupdates.push(this.Rkeys[key]);
-        console.log(this.name + " | " + "==> " + this.Rkeys[key] + " set to 0")
+        if (this.Rkeys[key] == 'I'){
+          continue;
+        }else{
+          this.R[this.Rkeys[key]] = 0;
+          latestupdates.push(this.Rkeys[key]);
+          console.log(this.name + " | " + "==> " + this.Rkeys[key] + " set to 0")
+        }
       }
     } else {
         this.R[this.Rkeys[Ra]] == 0;
@@ -239,8 +247,8 @@ class Core {
     latestupdates.push("AC")
     console.log(this.name + " | " + "==> AC = "+ this.R[this.Rkeys[Ra]] + " * " + this.R[this.Rkeys[Rb]]);
   }
-  FLOOR(Ra,Rb){
-    this.R['AC'] = MATH.floor(this.R[this.Rkeys[Ra]]/this.R[this.Rkeys[Rb]])
+  FLR(Ra,Rb){
+    this.R['AC'] = Math.floor(this.R[this.Rkeys[Ra]]/this.R[this.Rkeys[Rb]])
     latestupdates.push("AC")
     console.log(this.name + " | " + "==> AC = "+ this.R[this.Rkeys[Ra]] + " FLOOR " + this.R[this.Rkeys[Rb]]);
   }
@@ -286,7 +294,7 @@ class Core {
     let i = 0;
     let j = 0;
     for (var key in this.R ) {
-        if(key =='NULL' || key == 'ALL'){
+        if(key =='NULL' || key == 'ALL' || key == 'I'){
           continue;
         }
           if(i == 15*6){
@@ -374,8 +382,6 @@ function setup() {
   matrix     = loadStrings('matrix.txt');
   
   console.log("ammo");
-
-
 }
 
 
@@ -406,22 +412,22 @@ function draw_ISA(){
 }
 
 
-let core1 = new Core(0,0);
-let core2 = new Core(0,1);
-let core5 = new Core(0,2);
-let core10 = new Core(0,3);
-let core3 = new Core(1,0);
-let core4 = new Core(1,1);
-let core6 = new Core(1,2);
-let core11 = new Core(1,3);
-let core7 = new Core(2,0);
-let core8 = new Core(2,1);
-let core9 = new Core(2,2);
-let core12 = new Core(2,3);
-let core13 = new Core(3,0);
-let core14 = new Core(3,1);
-let core15 = new Core(3,2);
-let core16 = new Core(3,3);
+let core1 = new Core(0,0,1);
+let core2 = new Core(0,1,2);
+let core5 = new Core(0,2,5);
+let core10 = new Core(0,3,10);
+let core3 = new Core(1,0,3);
+let core4 = new Core(1,1,4);
+let core6 = new Core(1,2,6);
+let core11 = new Core(1,3,11);
+let core7 = new Core(2,0,7);
+let core8 = new Core(2,1,8);
+let core9 = new Core(2,2,9);
+let core12 = new Core(2,3,12);
+let core13 = new Core(3,0,13);
+let core14 = new Core(3,1,14);
+let core15 = new Core(3,2,15);
+let core16 = new Core(3,3,16);
 
 function draw() {
   background(Background);
@@ -430,6 +436,7 @@ function draw() {
   
   DM.displayMem();
   M.displayMem();
+  DM.M[3] = cores_n
   scale(Zoom);
 
   for(let k = 1;k<=cores_n;k++){
@@ -522,22 +529,6 @@ function Reset() {
   current_instruction ="HI";
 
 }
-function Execute(){
-  if(Instructions=='RST'){
-    eval(Cores+'.'+Instructions+'('+Ra+')');
-  }else if(Instructions=='ADDONE'){
-    eval(Cores+'.'+Instructions+'('+Ra+')');
-  }else if(Instructions=='SUBONE'){
-    eval(Cores+'.'+Instructions+'('+Ra+')');
-  }else if(Instructions=='JMPNZ'){
-    eval(Cores+'.'+Instructions+'('+Ra+')');
-  }else{
-    eval(Cores+'.'+Instructions+'('+Ra+','+Rb+')');
-  }
-  i+=1;
-  console.log("Execute Instruction");
-}
-
 
 function Next(){
   latestupdates = [];
@@ -646,6 +637,7 @@ function LoadMatrix(){
         }
       }
   }
+
   console.log("Load Code");
 }
 
