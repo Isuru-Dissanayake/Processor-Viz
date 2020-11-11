@@ -436,7 +436,7 @@ function draw() {
   
   DM.displayMem();
   M.displayMem();
-  DM.M[3] = cores_n
+  //DM.M[3] = cores_n
   scale(Zoom);
 
   for(let k = 1;k<=cores_n;k++){
