@@ -209,7 +209,7 @@ class Core {
     } else {
         this.R[this.Rkeys[Ra]] == 0;
         latestupdates.push(this.Rkeys[Ra]);
-        consoleLog.log(this.name + " | " + "==>" + this.Rkeys[Ra] + " set to 0")
+        console.log(this.name + " | " + "==>" + this.Rkeys[Ra] + " set to 0")
     }
   }
   MOV(Ra,Rb){ 
@@ -222,15 +222,15 @@ class Core {
     latestupdates.push(this.Rkeys[Rb])
     console.log(this.name + " | " + "==>" + this.Rkeys[Rb] + "=" + "DM.M[" + alpha + "]")
   }
-  STORE(alpha,Rb){
-    DM.M[alpha] = parseInt(this.R[this.Rkeys[Rb]]);
-    latestmemoryupdates.push(alpha);
-    console.log(this.name + " | " + "==> DM.M[" + alpha + "] = "+ this.Rkeys[Rb]);
+  STORE(Ra,Rb){
+    DM.M[this.R[this.Rkeys[Ra]]] = parseInt(this.R[this.Rkeys[Rb]]);
+    latestmemoryupdates.push(this.R[this.Rkeys[Ra]]);
+    console.log(this.name + " | " + "==> DM.M[" + this.Rkeys[Ra] + "] = "+ this.Rkeys[Rb]);
   }
   LOADR(Ra,Rb){
     this.R[this.Rkeys[Rb]] = parseInt(DM.M[this.R[this.Rkeys[Ra]]]);
     latestupdates.push(this.Rkeys[Rb])
-    console.log(this.name + " | ==>" + this.Rkeys[Rb] + "==" + alpha)
+    console.log(this.name + " | ==>" + this.Rkeys[Rb] + "== DM.M[" + this.Rkeys[Ra] + "]")
   }
   ADD(Ra,Rb){
     this.R['AC'] = this.R[this.Rkeys[Ra]] + this.R[this.Rkeys[Rb]]
@@ -567,11 +567,11 @@ function Next(){
       eval('core'+iter+'.'+M.M[code_pos][0]+'('+M.M[code_pos][1]+','+regIdentifier[M.M[code_pos][2]]+')');
       if(iter==cores_n)code_pos+=1;
       break;
-    case 'STORE':
+    /* case 'STORE':
       current_instruction = M.M[code_pos][0] + " " + M.M[code_pos][1] + " " + M.M[code_pos][2];
       eval('core'+iter+'.'+M.M[code_pos][0]+'('+M.M[code_pos][1]+','+regIdentifier[M.M[code_pos][2]]+')');
       if(iter==cores_n)code_pos+=1;
-      break;
+      break; */
     /* case 'LOADR':
       current_instruction = M.M[code_pos][0] + " " + M.M[code_pos][1] + " " + M.M[code_pos][2];
       eval('core'+iter+'.'+M.M[code_pos][0]+'('+M.M[code_pos][1]+','+regIdentifier[M.M[code_pos][2]]+')');
