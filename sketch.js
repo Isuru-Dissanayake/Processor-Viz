@@ -26,14 +26,14 @@ var autorun = false;
 
 var Cores = ['core1','core2','core3','core4','core5','core6','core7','core8','core9','core10','core11','core12','core13','core14','core15','core16'];
 var cores_n = 4;
-var Instructions = ['RST','MOV','LOAD','STORE','LDI','ADD','ADDONE','MUL','FLR','SUB','SUBONE','ROOF','MOD','JMPNZ'];
+var Instructions = ['RST','MOV','LOAD','STORE','LOADR','ADD','ADDONE','MUL','FLR','SUB','SUBONE','ROOF','MOD','JMPNZ'];
 var Instruction_Info = {
   'HI' : 'WELLCOME',
   'RST' : 'RESET TO 0',
   'MOV' : 'SET Rb = Ra',
   'LOAD' : 'Rb = DM.M[alpha]',
   'STORE' : 'DM.M[alpha] = Rb',
-  'LDI' : 'Rb = alpha',
+  'LOADR' : 'Rb = DM.M[Ra]',
   'ADD' : 'AC = Ra + Rb',
   'ADDONE' : 'AC = Ra + 1',
   'MUL' : 'AC = Ra * Rb',
@@ -227,8 +227,8 @@ class Core {
     latestmemoryupdates.push(alpha);
     console.log(this.name + " | " + "==> DM.M[" + alpha + "] = "+ this.Rkeys[Rb]);
   }
-  LDI(alpha,Rb){
-    this.R[this.Rkeys[Rb]] = parseInt(alpha);
+  LOADR(Ra,Rb){
+    this.R[this.Rkeys[Rb]] = parseInt(DM.M[this.R[this.Rkeys[Ra]]]);
     latestupdates.push(this.Rkeys[Rb])
     console.log(this.name + " | ==>" + this.Rkeys[Rb] + "==" + alpha)
   }
@@ -572,11 +572,11 @@ function Next(){
       eval('core'+iter+'.'+M.M[code_pos][0]+'('+M.M[code_pos][1]+','+regIdentifier[M.M[code_pos][2]]+')');
       if(iter==cores_n)code_pos+=1;
       break;
-    case 'LDI':
+    /* case 'LOADR':
       current_instruction = M.M[code_pos][0] + " " + M.M[code_pos][1] + " " + M.M[code_pos][2];
       eval('core'+iter+'.'+M.M[code_pos][0]+'('+M.M[code_pos][1]+','+regIdentifier[M.M[code_pos][2]]+')');
       if(iter==cores_n)code_pos+=1;
-      break;
+      break; */
     default:
       current_instruction = M.M[code_pos][0] + " " + M.M[code_pos][1] + " " + M.M[code_pos][2];
       eval('core'+iter+'.'+M.M[code_pos][0]+'('+regIdentifier[M.M[code_pos][1]]+','+regIdentifier[M.M[code_pos][2]]+')');
