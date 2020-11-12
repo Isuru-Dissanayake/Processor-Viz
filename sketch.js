@@ -274,7 +274,7 @@ class Core {
     latestupdates.push('AC')
   }
   JMPNZ(a){   
-    if(this.R['Z']==1){
+    if(this.R['Z']==0){
       this.R['PC'] = a
       latestupdates.push('PC');
       console.log(this.name + " | " + "==> PC = "+ a +" (if z==1)");
