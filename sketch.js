@@ -85,7 +85,7 @@ var matrix;
 var code_pos = 0;
 var code_pos_p = 0;
 var current_instruction ="HI";
-var samplecodes = ['2x2','3x3','4x4'];
+var samplecodes = ['2x2','3x3','4x4','2x2x2x3'];
 
 var infoLog=[];
 var line_array_readings=[]
