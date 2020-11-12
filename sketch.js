@@ -560,7 +560,7 @@ function Next(){
           current_instruction = M.M[code_pos][0] + " " + M.M[code_pos][1];
           eval('core'+iter+'.'+M.M[code_pos][0]+'('+M.M[code_pos][1]+')');
           if(iter==cores_n){
-            if(core1.R['Z']==1) code_pos = parseInt(M.M[code_pos][1])
+            if(core1.R['Z']==0) code_pos = parseInt(M.M[code_pos][1])
             else code_pos+=1;
           }
           break;
