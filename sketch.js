@@ -537,54 +537,49 @@ function Next(){
   code_pos_p = code_pos;
   console.log("=> "+M.M[code_pos][0]);
   for(var iter = 1; iter <= cores_n; iter++){
-
-  switch(M.M[code_pos][0]) {
-    case 'RST':
-      current_instruction = M.M[code_pos][0] + " " + M.M[code_pos][1];
-      eval('core'+iter+'.'+M.M[code_pos][0]+'('+regIdentifier[M.M[code_pos][1]]+')');
-      if(iter==cores_n)code_pos+=1;
-      break;
-    case 'ADDONE':
-      current_instruction = M.M[code_pos][0] + " " + M.M[code_pos][1];
-      eval('core'+iter+'.'+M.M[code_pos][0]+'('+regIdentifier[M.M[code_pos][1]]+')');
-      if(iter==cores_n)code_pos+=1;
-      break;
-    case 'SUBONE':
-      current_instruction = M.M[code_pos][0] + " " + M.M[code_pos][1];
-      eval('core'+iter+'.'+M.M[code_pos][0]+'('+regIdentifier[M.M[code_pos][1]]+')');
-      if(iter==cores_n)code_pos+=1;
-      break;
-    case 'JMPNZ':
-      current_instruction = M.M[code_pos][0] + " " + M.M[code_pos][1];
-      eval('core'+iter+'.'+M.M[code_pos][0]+'('+M.M[code_pos][1]+')');
-      if(iter==cores_n){
-        if(core1.R['Z']==1) code_pos = parseInt(M.M[code_pos][1])
-        else code_pos+=1;
+    AC = eval('core' + iter + '.R["AC"]' );
+    console.log(AC);
+    if (AC >= 0){
+      switch(M.M[code_pos][0]) {
+        case 'RST':
+          current_instruction = M.M[code_pos][0] + " " + M.M[code_pos][1];
+          eval('core'+iter+'.'+M.M[code_pos][0]+'('+regIdentifier[M.M[code_pos][1]]+')');
+          if(iter==cores_n)code_pos+=1;
+          break;
+        case 'ADDONE':
+          current_instruction = M.M[code_pos][0] + " " + M.M[code_pos][1];
+          eval('core'+iter+'.'+M.M[code_pos][0]+'('+regIdentifier[M.M[code_pos][1]]+')');
+          if(iter==cores_n)code_pos+=1;
+          break;
+        case 'SUBONE':
+          current_instruction = M.M[code_pos][0] + " " + M.M[code_pos][1];
+          eval('core'+iter+'.'+M.M[code_pos][0]+'('+regIdentifier[M.M[code_pos][1]]+')');
+          if(iter==cores_n)code_pos+=1;
+          break;
+        case 'JMPNZ':
+          current_instruction = M.M[code_pos][0] + " " + M.M[code_pos][1];
+          eval('core'+iter+'.'+M.M[code_pos][0]+'('+M.M[code_pos][1]+')');
+          if(iter==cores_n){
+            if(core1.R['Z']==1) code_pos = parseInt(M.M[code_pos][1])
+            else code_pos+=1;
+          }
+          break;
+        case 'LOAD':
+          current_instruction = M.M[code_pos][0] + " " + M.M[code_pos][1] + " " + M.M[code_pos][2];
+          eval('core'+iter+'.'+M.M[code_pos][0]+'('+M.M[code_pos][1]+','+regIdentifier[M.M[code_pos][2]]+')');
+          if(iter==cores_n)code_pos+=1;
+          break;
+        default:
+          current_instruction = M.M[code_pos][0] + " " + M.M[code_pos][1] + " " + M.M[code_pos][2];
+          eval('core'+iter+'.'+M.M[code_pos][0]+'('+regIdentifier[M.M[code_pos][1]]+','+regIdentifier[M.M[code_pos][2]]+')');
+          if(iter==cores_n)code_pos+=1;
+          break;
       }
-      break;
-    case 'LOAD':
-      current_instruction = M.M[code_pos][0] + " " + M.M[code_pos][1] + " " + M.M[code_pos][2];
-      eval('core'+iter+'.'+M.M[code_pos][0]+'('+M.M[code_pos][1]+','+regIdentifier[M.M[code_pos][2]]+')');
+    }else{
+      console.log('negq')
       if(iter==cores_n)code_pos+=1;
-      break;
-    /* case 'STORE':
-      current_instruction = M.M[code_pos][0] + " " + M.M[code_pos][1] + " " + M.M[code_pos][2];
-      eval('core'+iter+'.'+M.M[code_pos][0]+'('+M.M[code_pos][1]+','+regIdentifier[M.M[code_pos][2]]+')');
-      if(iter==cores_n)code_pos+=1;
-      break; */
-    /* case 'LOADR':
-      current_instruction = M.M[code_pos][0] + " " + M.M[code_pos][1] + " " + M.M[code_pos][2];
-      eval('core'+iter+'.'+M.M[code_pos][0]+'('+M.M[code_pos][1]+','+regIdentifier[M.M[code_pos][2]]+')');
-      if(iter==cores_n)code_pos+=1;
-      break; */
-    default:
-      current_instruction = M.M[code_pos][0] + " " + M.M[code_pos][1] + " " + M.M[code_pos][2];
-      eval('core'+iter+'.'+M.M[code_pos][0]+'('+regIdentifier[M.M[code_pos][1]]+','+regIdentifier[M.M[code_pos][2]]+')');
-      if(iter==cores_n)code_pos+=1;
-      break;
+    }
   }
-}
-
 }
 
 function LoadCode(){
