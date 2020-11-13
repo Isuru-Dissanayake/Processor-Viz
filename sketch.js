@@ -581,8 +581,14 @@ function Next(){
           break;
       }
     }else{
-      console.log('negq')
-      if(iter==cores_n)code_pos+=1;
+      if (M.M[code_pos][0] == 'JMPNZ'){
+        if(iter==cores_n){
+          if(core1.R['Z']==0) code_pos = parseInt(M.M[code_pos][1])
+          else code_pos+=1;
+        }
+      }else{
+        if(iter==cores_n)code_pos+=1;
+      }
     }
   }
 }
