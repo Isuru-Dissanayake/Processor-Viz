@@ -44,14 +44,14 @@ Assembly= {0: 'RST ALL',
 43: 'ADDONE R12',
 44: 'MOV AC R12',
 45: 'SUB R6 R12',
-46: 'JMPNZ 35',
+46: 'JMPNZ 34',
 47: 'STORE R9 TO',
 48: 'RST R12',
 49: 'RST TO',
 50: 'ADDONE R13',
 51: 'MOV AC R13',
 52: 'SUB R14 R13',
-53: 'JMPNZ 10'}
+53: 'JMPNZ 9'}
 
 
 #size of the first matrix= n*m
