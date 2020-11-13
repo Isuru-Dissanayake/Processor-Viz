@@ -57,20 +57,24 @@ Assembly= {0: 'RST ALL',
 #size of the output matrix= n*l
 #number of used cores= y
 
-n= 2
-m= 2
-l= 3
+n= 4
+m= 4
+l= 4
 y= 1
 
 alpha1= 7
 alpha2= 7+ n*m
 alpha3= alpha2+ m*l
 
-A= [[1,2],
-    [3,4]]
+A= [[1,2,3,4],
+    [1,2,3,4],
+    [1,2,3,4],
+    [1,2,3,4]]
 
-B= [[1,2,3],
-    [4,5,6]]
+B= [[1,2,3,4],
+    [1,2,3,4],
+    [1,2,3,4],
+    [1,2,3,4]]
 
 f= open(str(n)+'x'+str(l)+'.txt',"w+")
 for i in range(52):
