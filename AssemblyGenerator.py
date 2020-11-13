@@ -14,8 +14,8 @@ Assembly= {0: 'RST ALL',
 13: 'SUB AC R7',
 14: 'MUL R13 R3',
 15: 'ADD AC I',
-16: 'MOV AC R4',
-17: 'SUBONE AC',
+16: 'SUBONE AC',
+17: 'MOV AC R4',
 18: 'MOD AC R1',
 19: 'MOV AC R5',
 20: 'FLR R4 R1',
@@ -46,11 +46,12 @@ Assembly= {0: 'RST ALL',
 45: 'SUB R6 R12',
 46: 'JMPNZ 35',
 47: 'STORE R9 TO',
-48: 'RST TO',
-49: 'ADDONE R13',
-50: 'MOV AC R13',
-51: 'SUB R14 R13',
-52: 'JMPNZ 10'}
+48: 'RST R12',
+49: 'RST TO',
+50: 'ADDONE R13',
+51: 'MOV AC R13',
+52: 'SUB R14 R13',
+53: 'JMPNZ 10'}
 
 
 #size of the first matrix= n*m
@@ -60,8 +61,8 @@ Assembly= {0: 'RST ALL',
 
 n= 2
 m= 2
-l= 2
-y= 16
+l= 3
+y= 1
 
 alpha1= 7
 alpha2= 7+ n*m
@@ -70,11 +71,11 @@ alpha3= alpha2+ m*l
 A= [[1,2],
     [3,4]]
 
-B= [[1,2],
-    [3,4]]
+B= [[1,2,3],
+    [4,5,6]]
 
 f= open(str(n)+'x'+str(l)+'.txt',"w+")
-for i in range(53):
+for i in range(54):
     #if i== 22:
     #    f.write(str(i)+' LOADR '+str(alpha1)+' R7\n')
     #elif i== 23:

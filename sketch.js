@@ -207,7 +207,7 @@ class Core {
         }
       }
     } else {
-        this.R[this.Rkeys[Ra]] == 0;
+        this.R[this.Rkeys[Ra]] = 0;
         latestupdates.push(this.Rkeys[Ra]);
         console.log(this.name + " | " + "==>" + this.Rkeys[Ra] + " set to 0")
     }
