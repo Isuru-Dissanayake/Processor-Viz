@@ -25,7 +25,8 @@ var Background=[24,245];
 var autorun = false;
 
 var Cores = ['core1','core2','core3','core4','core5','core6','core7','core8','core9','core10','core11','core12','core13','core14','core15','core16'];
-var cores_n = 4;
+var cores_n = 16;
+var No_of_cores = 1;
 var Instructions = ['RST','MOV','LOAD','STORE','LOADR','ADD','ADDONE','MUL','FLR','SUB','SUBONE','ROOF','MOD','JMPNZ'];
 var Instruction_Info = {
   'HI' : 'WELLCOME',
@@ -302,7 +303,11 @@ class Core {
             i = 0;
           }
           if(latestupdates.includes(key)){
-            fill(255, 255,0); 
+            if (this.R['AC'] >= 0){
+              fill(255, 255,0); ;
+            }else{
+              fill(220, 220,220); 
+            }
           }else{
             fill(220, 220,220); 
           }
@@ -348,7 +353,7 @@ function setup() {
   
   gui = createGui('Processor Visualizer', windowWidth/2 - 150 , windowHeight/2 - 100);
   sliderRange(1,16,1);
-  gui.addGlobals('cores_n');
+  gui.addGlobals('No_of_cores');
   gui.addGlobals('samplecodes');
   gui.addButton("Select Sample", function() {
     LoadSample();
@@ -436,7 +441,7 @@ function draw() {
   
   DM.displayMem();
   M.displayMem();
-  //DM.M[3] = cores_n
+  DM.M[3] = No_of_cores
   scale(Zoom);
 
   for(let k = 1;k<=cores_n;k++){
